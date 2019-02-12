@@ -27,7 +27,6 @@ namespace Liar
 		Liar::Cell** m_cells;
 		Liar::Uint m_numberCell;
 
-#ifdef ShareFind
 		Liar::Heap* m_openList;
 		Liar::Cell** m_closeList;
 		Liar::Uint m_closeCount;
@@ -42,25 +41,26 @@ namespace Liar
 		Liar::Uint m_crossCount;
 #endif // EditorMod
 
+#ifndef ShareFind
+		Liar::Cell** m_testCells;
+		Liar::Uint m_testCount;
+#endif // !ShareFind
 
 		static int PATHSESSIONID;
-#endif // ShareFind
 
 	public:
-#ifdef ShareFind
 		Liar::Vector2f** FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&, bool rw = true);
-#endif // ShareFind
 		void Set();
 		void AddCell(Liar::Cell*);
-		void LinkCells(bool = true);
+		Liar::Uint LinkCells(bool = true);
+		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE);
 
-#ifdef ShareFind
 	private:
 		Liar::Cell* FindClosestCell(const Vector2f&, bool = true);
 		Liar::Cell* FindClosestCell(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true);
 		
 		Cell** GetCellPath(int&);
-		void GetFurthestWayPoint(WayPoint* w, Cell* CellPath[], int cellCount, Vector2f* end, Line2d*, Line2d*, bool rw = true);
+		
 		void AddCrossCell(Cell*);
 
 		Liar::Vector2f** GetPath(const Vector2f&, const Vector2f&, Liar::Uint&, bool = true);
@@ -89,15 +89,23 @@ namespace Liar
 		bool GetCrossVector2f(const Vector2f&, const Vector2f&, const Vector2f&, const Vector2f&, NAVDTYPE&, NAVDTYPE&);
 
 #if FindNearest
-		void FindNearestPath(int, Vector2f*, int&);
+		void FindNearestPath(Liar::Uint, Liar::Vector2f**, Liar::Uint&);
 #endif // FindNearest
 
 #ifdef EditorMod
 	public:
 		void DisposeFindCtr();
+		Liar::Cell** GetCells() const { return m_cells; };
+		Liar::Uint GetCellCount() const { return m_numberCell; };
+		void GetCrossInfo(Liar::Cell**, Liar::Uint&);
 #endif // EditorMod
 
-#endif // ShareFind
+#ifndef ShareFind
+		Liar::Cell* AddTestCell(Liar::Cell*);
+		void DestoryTestCell();
+#endif // !ShareFind
+
+
 	};
 }
 

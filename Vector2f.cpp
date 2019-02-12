@@ -13,7 +13,7 @@ namespace Liar
 
 	void Vector2f::Set(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
 	{
-		m_x = y;
+		m_x = x;
 		m_y = y;
 	}
 

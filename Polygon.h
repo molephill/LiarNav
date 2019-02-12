@@ -12,8 +12,6 @@
 
 namespace Liar
 {
-	class Map;
-
 #ifdef EditorMod
 	class POLYGON_API Polygon :public Liar::MapSource
 #else

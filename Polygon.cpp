@@ -65,7 +65,7 @@ namespace Liar
 		if (m_isClockWise != Liar::ClockWiseDefine::CLOCK_NO_DEFINE) return m_isClockWise == Liar::ClockWiseDefine::CLOCK_WISE_DEFINE;
 
 		Liar::Vector2f* topPt = GetVertex(0);
-		int topPtId = 0;
+		Liar::Uint topPtId = 0;
 
 		for (Liar::Uint i = 1; i < m_numberPoints; ++i)
 		{
@@ -87,7 +87,7 @@ namespace Liar
 			}
 		}
 
-		int lastId = 0, nextId = 0;
+		Liar::Uint lastId = 0, nextId = 0;
 		lastId = topPtId >= 1 ? topPtId - 1 : m_numberPoints - 1;
 		nextId = (topPtId + 1) >= m_numberPoints ? 0 : topPtId + 1;
 

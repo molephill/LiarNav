@@ -2,21 +2,12 @@
 
 namespace Liar
 {
-#ifdef UNION_POLYGON
 	Map::Map() :
 		m_vertexs(nullptr), m_numberVertex(0),
 		m_polygons(nullptr), m_numberPolygon(0),
-		m_nodes1(nullptr), m_numberNode1(0),
-		m_nodes2(nullptr), m_numberNode2(0),
 		m_navMesh(nullptr)
-#else
-	Map::Map() :
-		m_vertexs(nullptr), m_numberVertex(0),
-		m_polygons(nullptr), m_numberPolygon(0)
-#endif // UNION_POLYGON
 	{
 	}
-
 
 	Map::~Map()
 	{
@@ -50,10 +41,6 @@ namespace Liar
 			m_navMesh = nullptr;
 		}
 
-#ifdef UNION_POLYGON
-		DisposeNodes();
-#endif // UNION_POLYGON
-
 	}
 
 	void Map::Init()
@@ -65,15 +52,50 @@ namespace Liar
 		m_numberPolygon = 0;
 	}
 
+	Liar::Vector2f** Map::FindPath(Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, Liar::Uint& count, bool CW)
+	{
+		Liar::Vector2f** out = m_navMesh->FindPath(startX, startY, endX, endY, count, CW);
+#ifndef ShareFind
+		m_navMesh->DestoryTestCell();
+#endif // ShareFind
+		return out;
+	}
+
+	bool Map::InMap(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool calc)
+	{
+		if (calc) CalcBound();
+		if (x >= m_minX && x <= m_maxX && y >= m_minY && y <= m_maxY)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	bool Map::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	{
+		return m_navMesh->CanWalk(x, y);
+	}
+
+	void Map::CalcBound()
+	{
+		if (m_minX == 0.0 && m_minY == 0.0 && m_maxX == 0.0 && m_maxY == 0)
+		{
+			for (Liar::Uint i = 0; i < m_numberPolygon; ++i)
+			{
+				Polygon& polygon = *(m_polygons[i]);
+				NAVDTYPE* rect = polygon.Rectangle();
+				m_minX = m_minX < rect[0] ? m_minX : rect[0];
+				m_maxX = m_maxX > rect[1] ? m_maxX : rect[1];
+				m_minY = m_minY < rect[2] ? m_minY : rect[2];
+				m_maxY = m_maxY < rect[3] ? m_maxY : rect[3];
+			}
+		}
+	}
+
 	Liar::Vector2f* Map::GetVertex(Liar::Uint index) const
 	{
 		if (index >= m_numberVertex) return nullptr;
 		return m_vertexs[index];
-	}
-
-	const Liar::Polygon* Map::GetPolygon(Liar::Uint index) const
-	{
-		return GetPolygon(index);
 	}
 
 	Liar::Polygon* Map::GetPolygon(Liar::Uint index)
@@ -86,34 +108,47 @@ namespace Liar
 	{
 		if (size <= 0) return m_numberPolygon;
 
-		m_numberPolygon++;
-		size_t len = sizeof(Liar::Polygon*)*m_numberPolygon;
-		if (!m_polygons) m_polygons = (Liar::Polygon**)malloc(len);
-		else m_polygons = (Liar::Polygon**)realloc(m_polygons, len);
-
-		Liar::Polygon* polygon = (Liar::Polygon*)malloc(sizeof(Liar::Polygon));
-		polygon->Set(this);
+		Liar::Polygon& polygon = AutoAddPolygon();
 
 		for (Liar::Uint i = 0; i < size; ++i)
 		{
 			Liar::Uint addIndex = AddVertex(v[i]);
-			polygon->AddPointIndex(addIndex);
+			polygon.AddPointIndex(addIndex);
 		}
+		return m_numberPolygon;
+	}
+
+	Liar::Polygon& Map::AutoAddPolygon()
+	{
+		m_numberPolygon++;
+		size_t blockSize = sizeof(Liar::Polygon*)*m_numberPolygon;
+		if (!m_polygons) m_polygons = (Liar::Polygon**)malloc(blockSize);
+		else m_polygons = (Liar::Polygon**)realloc(m_polygons, blockSize);
+
+		Liar::Polygon* polygon = (Liar::Polygon*)malloc(sizeof(Liar::Polygon));
+		polygon->Set(this);
+		m_polygons[m_numberPolygon - 1] = polygon;
+		return *polygon;
 	}
 
 	Liar::Uint Map::AddVertex(const Liar::Vector2f& source)
 	{
+		return AddVertex(source.GetX(), source.GetY());
+	}
+
+	Liar::Uint Map::AddVertex(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	{
 		for (Liar::Uint i = 0; i < m_numberVertex; ++i)
 		{
-			if (source.Equals(*m_vertexs[i])) return i;
+			if (m_vertexs[i]->Equals(x, y)) return i;
 		}
 
 		m_numberVertex++;
-		size_t size = sizeof(Liar::Vector2f*)*m_numberVertex;
-		if (!m_vertexs) m_vertexs = (Liar::Vector2f**)malloc(size);
-		else m_vertexs = (Liar::Vector2f**)realloc(m_vertexs, size);
+		size_t blockSize = sizeof(Liar::Vector2f*)*m_numberVertex;
+		if (!m_vertexs) m_vertexs = (Liar::Vector2f**)malloc(blockSize);
+		else m_vertexs = (Liar::Vector2f**)realloc(m_vertexs, blockSize);
 		Liar::Vector2f* copy = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-		copy->Set(source);
+		copy->Set(x, y);
 		m_vertexs[m_numberVertex - 1] = copy;
 		return m_numberVertex - 1;
 	}
@@ -146,18 +181,20 @@ namespace Liar
 		}
 	}
 
-	void Map::AddNavMeshCell(const Liar::Cell* cell)
+	void Map::AddNavMeshCell(Liar::Cell* cell)
 	{
 		if (!m_navMesh)
 		{
 			m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
 			m_navMesh->Set();
 		}
+		m_navMesh->AddCell(cell);
 	}
 
-	void Map::NavMeshLinkCells(bool isCW)
+	Liar::Uint Map::NavMeshLinkCells(bool isCW)
 	{
-		if (m_navMesh) m_navMesh->LinkCells(isCW);
+		if (m_navMesh) return m_navMesh->LinkCells(isCW);
+		else return 0;
 	}
 
 #ifdef UNION_POLYGON
@@ -175,7 +212,8 @@ namespace Liar
 				{
 					p0->Rectangle();
 					p1->Rectangle();
-					if (UnionPolygons(*p0, *p1, rw) > 0)
+					Liar::Uint unionNum = UnionPolygons(*p0, *p1, rw);
+					if (unionNum > 0)
 					{
 						// delete p0 & p1;
 						Liar::Uint replace0 = 0;
@@ -209,8 +247,7 @@ namespace Liar
 							m_polygons[m_numberPolygon - 2] = nullptr;
 						}
 
-						m_numberPolygon -= 2;
-
+						m_numberPolygon -= 2 + unionNum;
 
 						n = 1;
 					}
@@ -359,7 +396,7 @@ namespace Liar
 	{
 		Liar::Uint linkNum = 0;
 
-		for (int i = 0; i < cv0c; ++i)
+		for (Liar::Uint i = 0; i < cv0c; ++i)
 		{
 			Liar::Map::Node* testNode = cv0[i];
 			if (testNode->i == true && testNode->p == false)
@@ -471,13 +508,14 @@ namespace Liar
 				curMaxNodes = Liar::Map::m_nodes2;
 			}
 
-			if (curMin < min && curMax >= max)
+			if (!curMinNodes || (curMin < min && curMax >= max))
 			{
-				ExpandNodes(map, min, curMinNodes, curMin);
+				curMinNodes = ExpandNodes(map, min, curMinNodes, curMin);
 			}
-			else if (curMin >= min && curMax < max)
+			
+			if (!curMaxNodes || (curMin >= min && curMax < max))
 			{
-				ExpandNodes(map, min, curMaxNodes, curMin);
+				curMaxNodes = ExpandNodes(map, min, curMaxNodes, curMax);
 			}
 
 			setMinNodes = curMinNodes;
@@ -502,7 +540,7 @@ namespace Liar
 		}
 	}
 
-	void Map::ExpandNodes(Liar::Map const* map, Liar::Uint curNum, Liar::Map::Node** nodes, Liar::Uint& oldNum)
+	Liar::Map::Node** Map::ExpandNodes(Liar::Map const* map, Liar::Uint curNum, Liar::Map::Node** nodes, Liar::Uint& oldNum)
 	{
 		if (curNum > oldNum)
 		{
@@ -519,6 +557,8 @@ namespace Liar
 
 			oldNum = curNum;
 		}
+
+		return nodes;
 	}
 
 	void Map::DisposeNodes()
@@ -576,6 +616,11 @@ namespace Liar
 			return true;
 		}
 	}
+
+	Liar::Map::Node** Liar::Map::m_nodes1 = nullptr;
+	Liar::Map::Node** Liar::Map::m_nodes2 = nullptr;
+	Liar::Uint Liar::Map::m_numberNode1 = 0;
+	Liar::Uint Liar::Map::m_numberNode2 = 0;
 #endif // UNION_POLYGON
 
 	// ============================== Node =========================

@@ -3,8 +3,8 @@
 
 namespace Liar
 {
-	//#define _DEBUG 1
-#define ShareFind 1
+//#define _DEBUG 1
+//#define ShareFind 1
 #define EditorMod 1
 #define FindNearest 1
 #define OutFind 1
@@ -20,9 +20,10 @@ namespace Liar
 
 	//
 	const static NAVDTYPE EPSILON = 0.000001f;
+	const static NAVDTYPE ZERO = 0.0f;
 
-	// version
-	const static int VERSION = 2;
+	// define version
+	const static int NAV_VERSION = 2;
 
 	enum LineClassification
 	{

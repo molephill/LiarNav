@@ -66,18 +66,32 @@ namespace Liar
 	{
 		Liar::Triangle::Set(source);
 
-		size_t size = sizeof(Liar::Int) * 3;
+		size_t blockSize = sizeof(Liar::Int) * 3;
 
-		if(!m_links) m_links = (Liar::Int*)malloc(size);
-		if (source.m_links) memcpy(m_links, source.m_links, size);
+		if(!m_links) m_links = (Liar::Int*)malloc(blockSize);
+		if (source.m_links) memcpy(m_links, source.m_links, blockSize);
 
-		size = sizeof(Liar::NAVDTYPE) * 3;
-		if (source.m_wallDistance) memcpy(m_wallDistance, source.m_wallDistance, size);
+		blockSize = sizeof(Liar::NAVDTYPE) * 3;
+		if (source.m_wallDistance) memcpy(m_wallDistance, source.m_wallDistance, blockSize);
+
+		m_index = source.m_index;
+		sessionId = source.sessionId;
+		f = source.f;
+		h = source.h;
+		isOpen = source.isOpen;
+		parent = source.parent;
+		arrivalWall = source.arrivalWall;
+		checkLinkCount = source.checkLinkCount;
 	}
 
 	void Cell::SetIndex(Liar::Int index)
 	{
 		m_index = index;
+	}
+
+	bool Cell::Equals(const Liar::Cell& source)
+	{
+		return m_index == source.m_index;
 	}
 
 	bool Cell::CalcInit()
@@ -103,20 +117,20 @@ namespace Liar
 			Liar::Vector2f* wallVector = (Liar::Vector2f*)malloc(size);
 
 			// p0 - p1
-			wallVector->Set((ax + bx)*0.5, (ay + by)*0.5); // p0
-			wallMidPoint->Set((cx + bx)*0.5, (cy + by)*0.5); // p1
+			wallVector->Set((ax + bx)*0.5f, (ay + by)*0.5f); // p0
+			wallMidPoint->Set((cx + bx)*0.5f, (cy + by)*0.5f); // p1
 			*(wallVector) -= *(wallMidPoint);
 			m_wallDistance[0] = wallVector->Length();
 
 			// p1 - p2
-			wallVector->Set((cx + bx)*0.5, (cy + by)*0.5); // p1
-			wallMidPoint->Set((cx + ax)*0.5, (cy + ay)*0.5); // p2;
+			wallVector->Set((cx + bx)*0.5f, (cy + by)*0.5f); // p1
+			wallMidPoint->Set((cx + ax)*0.5f, (cy + ay)*0.5f); // p2;
 			*(wallVector) -= *(wallMidPoint);
 			m_wallDistance[1] = wallVector->Length();
 
 			// p2 - p0
-			wallVector->Set((cx + ax)*0.5, (cy + ay)*0.5); // p2
-			wallMidPoint->Set((ax + bx)*0.5, (ay + by)*0.5); // p0;
+			wallVector->Set((cx + ax)*0.5f, (cy + ay)*0.5f); // p2
+			wallMidPoint->Set((ax + bx)*0.5f, (ay + by)*0.5f); // p0;
 			*(wallVector) -= *(wallMidPoint);
 			m_wallDistance[2] = wallVector->Length();
 
@@ -217,46 +231,6 @@ namespace Liar
 		// we are not adjacent to the calling Cell
 		return false;
 
-	}
-
-	/**
-	* 记录路径从上一个节点进入该节点的边（如果从终点开始寻路即为穿出边）
-	* @param index	路径上一个节点的索引
-	*/
-	int Cell::SetAndGetArrivalWall(int index)
-	{
-		if (index == m_links[0])
-		{
-			arrivalWall = 0;
-			return 0;
-		}
-		else if (index == m_links[1])
-		{
-			arrivalWall = 1;
-			return 1;
-		}
-		else if (index == m_links[2])
-		{
-			arrivalWall = 2;
-			return 2;
-		}
-
-		return -1;
-	}
-
-	/**
-	* 计算估价（h）  Compute the A* Heuristic for this Cell given a Goal point
-	* @param goal
-	*/
-	void Cell::ComputeHeuristic(const Vector2f& goal)
-	{
-		// our heuristic is the estimated distance (using the longest axis delta) 
-		// between our Cell center and the goal location
-
-		NAVDTYPE XDelta = abs(goal.GetX() - m_center->GetX());
-		NAVDTYPE YDelta = abs(goal.GetY() - m_center->GetY());
-
-		h = XDelta + YDelta;
 	}
 
 	/**

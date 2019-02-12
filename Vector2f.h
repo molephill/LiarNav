@@ -2,16 +2,16 @@
 #ifndef  __VECTOR2F_H__
 #define  __VECTOR2F_H__
 
+#include <iostream>
+#include <math.h>
+
+#include "Define.h"
+
 #ifdef  EditorMod  
 #define  VECTOR2F_API _declspec(dllexport)  
 #else  
 #define  VECTOR2F_API _declspec(dllimport)  
 #endif
-
-#include <iostream>
-#include <math.h>
-
-#include "Define.h"
 
 namespace Liar
 {
@@ -22,7 +22,7 @@ namespace Liar
 #endif // EditorMod
 	{
 	public:
-		Vector2f(Liar::NAVDTYPE = 0.0f, Liar::NAVDTYPE = 0.0f);
+		Vector2f(Liar::NAVDTYPE = Liar::ZERO, Liar::NAVDTYPE = Liar::ZERO);
 		Vector2f(const Liar::Vector2f&);
 		~Vector2f();
 
@@ -31,7 +31,7 @@ namespace Liar
 		Liar::NAVDTYPE m_y;
 
 	public:
-		void Set(Liar::NAVDTYPE, Liar::NAVDTYPE);
+		void Set(Liar::NAVDTYPE = Liar::ZERO, Liar::NAVDTYPE = Liar::ZERO);
 		void Set(const Liar::Vector2f&);
 		Liar::NAVDTYPE Length() const;
 		Liar::NAVDTYPE LengthSquared() const;

@@ -23,9 +23,9 @@ namespace Liar
 	{
 		if (m_numCells < size + 1)
 		{
-			size_t size = sizeof(sizeof(Liar::Cell*)) *(size + 1);
-			if (m_heap) m_heap = (Liar::Cell**)realloc(m_heap, size);
-			else m_heap = (Liar::Cell**)malloc(size);
+			size_t blockSize = sizeof(sizeof(Liar::Cell*)) *(size + 1);
+			if (m_heap) m_heap = (Liar::Cell**)realloc(m_heap, blockSize);
+			else m_heap = (Liar::Cell**)malloc(blockSize);
 		}
 		m_numCells = size + 1;
 		for (Liar::Uint i = 0; i < m_numCells; ++i) m_heap[i] = nullptr;
@@ -86,7 +86,7 @@ namespace Liar
 			//delCellPosVector(_heap, _count);
 
 			int i = 1;
-			int child = i << 1;
+			Liar::Uint child = i << 1;
 			Liar::Cell* tmp = m_heap[i];
 
 			while (child < m_curNum)

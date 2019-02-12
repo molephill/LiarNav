@@ -42,12 +42,19 @@ namespace Liar
 
 		bool IsPointIn(const Liar::Vector2f&, bool = true);
 		bool IsPointIn(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true);
+
+		bool IsSide(const Liar::Vector2f&, const Liar::Vector2f&);
 		
 		Liar::Line2d& GetSide(Liar::Uint) const;
 
 		Liar::Vector2f& GetPointA() const;
 		Liar::Vector2f& GetPointB() const;
 		Liar::Vector2f& GetPointC() const;
+
+#ifdef EditorMod
+		Liar::Vector2f* GetCenter() const { return m_center; };
+#endif // EditorMod
+
 
 	protected:
 		bool CalcInit();

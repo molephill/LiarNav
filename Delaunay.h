@@ -32,7 +32,7 @@ namespace Liar
 		Liar::Uint m_curNumLines;
 
 	public:
-		void Set(Liar::Map&, bool = true, Liar::Uint = 0);
+		Liar::Uint Set(Liar::Map&, bool = true, Liar::Uint = 0);
 
 	private:
 		void BuildEdges(Liar::Map&);
@@ -50,7 +50,7 @@ namespace Liar
 		Liar::NAVDTYPE LineAngle(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&);
 
 		void RemovePosLine(Liar::Line2d** lv, int&, int pos);
-		Liar::Int FindLinePos(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Line2d**, Liar::Uint);
+		Liar::Int FindLinePos(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Line2d**, Liar::Uint);
 		void LinkCells(Liar::Map&, bool = true);
 	};
 

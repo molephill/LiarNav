@@ -47,14 +47,12 @@ namespace Liar
 		void CheckAndLink(Liar::Cell&);
 		bool CheckAllLink() const;
 		Liar::Int GetLink(Liar::Uint) const;
-
+		Liar::NAVDTYPE GetWallDistance(int side) { return m_wallDistance[side]; };
+		int SetAndGetArrivalWall(int);
 		void ComputeHeuristic(const Liar::Vector2f&);
 		void ComputeHeuristic(Liar::NAVDTYPE, Liar::NAVDTYPE);
-
-		Liar::NAVDTYPE GetWallDistance(int side) { return m_wallDistance[side]; };
-
 		Liar::Int GetIndex() const { return m_index; };
-		int SetAndGetArrivalWall(int);
+		bool Equals(const Liar::Cell&);
 
 	protected:
 		bool CalcInit();
@@ -63,8 +61,6 @@ namespace Liar
 		bool RequestList(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Cell&);
 		void SetLink(Liar::TriangleSide, const Liar::Cell&);
 		Liar::NAVDTYPE GetWallDistatnce(Liar::TriangleSide) const;
-		int SetAndGetArrivalWall(int);
-		void ComputeHeuristic(const Liar::Vector2f&);
 	};
 }
 

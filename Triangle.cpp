@@ -116,6 +116,21 @@ namespace Liar
 		return interiorCount == 3;
 	}
 
+	// 判断是否是三角形的边
+	bool Triangle::IsSide(const Liar::Vector2f& pa, const Liar::Vector2f& pb)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			Liar::Line2d* line = m_sides[i];
+			if (line->Equals(pa, pb))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	Liar::Line2d& Triangle::GetSide(Liar::Uint sideIndex) const
 	{
 		return *(m_sides[sideIndex]);

@@ -1,13 +1,18 @@
 ﻿  Cell.cpp
+  Delaunay.cpp
+  Heap.cpp
   Line2d.cpp
   main.cpp
   Map.cpp
-e:\c++\liarnav\liarnav\map.cpp(58): error C2082: 形参“size”的重定义
   MapSource.cpp
+  NavMesh.cpp
+  NifMap.cpp
+  nifmaps.cpp
   Polygon.cpp
-e:\c++\liarnav\liarnav\polygon.cpp(75): warning C4018: “>=”: 有符号/无符号不匹配
   Triangle.cpp
   Vector2D.cpp
   Vector2f.cpp
+  WayPoint.cpp
   正在生成代码...
-e:\c++\liarnav\liarnav\polygon.cpp(130): error C4716: “Liar::Polygon::UnionPolygons”: 必须返回一个值
+    正在创建库 E:\c++\LiarNav\Debug\LiarNav.lib 和对象 E:\c++\LiarNav\Debug\LiarNav.exp
+  LiarNav.vcxproj -> E:\c++\LiarNav\Debug\LiarNav.exe

@@ -54,6 +54,9 @@
     <ClInclude Include="Delaunay.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="NifMap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Vector2D.cpp">
@@ -93,6 +96,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Delaunay.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NifMap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="nifmaps.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

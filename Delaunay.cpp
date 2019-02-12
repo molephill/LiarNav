@@ -26,12 +26,17 @@ namespace Liar
 		}
 	}
 
-	void Delaunay::Set(Liar::Map& map, bool isCW, Liar::Uint boxIndex)
+	Liar::Uint Delaunay::Set(Liar::Map& map, bool isCW, Liar::Uint boxIndex)
 	{
 		m_curNumLines = 0;
+
+#ifdef UNION_POLYGON
+		map.UnionAll(isCW);
+#endif // UNION_POLYGON
+
 		BuildEdges(map);
 		BuildTrianges(map, isCW, boxIndex);
-		map.NavMeshLinkCells(isCW);
+		return map.NavMeshLinkCells(isCW);
 	}
 
 	void Delaunay::BuildTrianges(Liar::Map& map, bool isCW, Liar::Uint boxIndex)
@@ -165,7 +170,7 @@ namespace Liar
 		Line2d* initEdge = m_line2ds[0];
 
 		bool loopSign = false;
-		int loopIdx = 0;
+		Liar::Uint loopIdx = 0;
 		Liar::Vector2f* cit = nullptr;
 		Liar::Uint pointIndex = 0;
 
@@ -316,7 +321,7 @@ namespace Liar
 		Vector2f* interscetVector = (Vector2f*)malloc(sizeof(Vector2f));
 		interscetVector->Set(0.0f, 0.0f);
 
-		for (int i = 0; i < m_curNumLines; ++i)
+		for (Liar::Uint i = 0; i < m_curNumLines; ++i)
 		{
 			Line2d* limeTmp = m_line2ds[i];
 			if (linepapb->Intersection(*limeTmp, interscetVector) == LineClassification::SEGMENTS_INTERSECT)
@@ -388,17 +393,17 @@ namespace Liar
 
 		m1 = -(p2x - p1x) / (p2y - p1y);
 		m2 = -(p3x - p2x) / (p3y - p2y);
-		mx1 = (p1x + p2x) / 2.0;
-		mx2 = (p2x + p3x) / 2.0;
-		my1 = (p1y + p2y) / 2.0;
-		my2 = (p2y + p3y) / 2.0;
+		mx1 = (p1x + p2x) / 2.0f;
+		mx2 = (p2x + p3x) / 2.0f;
+		my1 = (p1y + p2y) / 2.0f;
+		my2 = (p2y + p3y) / 2.0f;
 
 		if (abs(p2y - p1y) < EPSILON) {
-			xc = (p2x + p1x) / 2.0;
+			xc = (p2x + p1x) / 2.0f;
 			yc = m2 * (xc - mx2) + my2;
 		}
 		else if (abs(p3y - p2y) < EPSILON) {
-			xc = (p3x + p2x) / 2.0;
+			xc = (p3x + p2x) / 2.0f;
 			yc = m1 * (xc - mx1) + my1;
 		}
 		else {
@@ -458,7 +463,7 @@ namespace Liar
 	/*
 	* find line pos in edges
 	*/
-	Liar::Int Delaunay::FindLinePos(const Liar::Vector2f& pa, const Liar::Vector2f& pb, const Liar::Line2d** lines, Liar::Uint size)
+	Liar::Int Delaunay::FindLinePos(const Liar::Vector2f& pa, const Liar::Vector2f& pb, Liar::Line2d** lines, Liar::Uint size)
 	{
 		for (Liar::Uint i = 0; i < size; ++i)
 		{
