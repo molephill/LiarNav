@@ -16,18 +16,16 @@ namespace Liar
 	{
 		Liar::MapSource::~MapSource();
 
-		if (m_center)
-		{
-			m_center->~Vector2f();
-			free(m_center);
-			m_center = nullptr;
-		}
+		m_center->~Vector2f();
+		free(m_center);
+		m_center = nullptr;
 
 		if (m_sides)
 		{
 			for (size_t i = 0; i < 3; i++)
 			{
 				m_sides[i]->~Line2d();
+				free(m_sides[i]);
 				m_sides[i] = nullptr;
 			}
 
@@ -43,24 +41,15 @@ namespace Liar
 		m_pointIndexB = 0;
 		m_pointIndexC = 0;
 
-		m_center = nullptr;
+		m_center = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 		m_sides = nullptr;
 		m_centerCalculated = false;
 	}
 
 	bool Triangle::Set(Liar::Map const* map, Liar::Uint a, Liar::Uint b, Liar::Uint c)
 	{
-		if (m_map != map || a != m_pointIndexA || b != m_pointIndexB || c != m_pointIndexC)
-		{
-			Liar::MapSource::Set(map);
-			m_pointIndexA = a;
-			m_pointIndexB = b;
-			m_pointIndexC = c;
-			m_centerCalculated = false;
-			CalcInit();
-			return true;
-		}
-		return false;
+		Liar::MapSource::Set(map);
+		return Set(a, b, c);
 	}
 
 	bool Triangle::Set(Liar::Uint a, Liar::Uint b, Liar::Uint c)
@@ -84,11 +73,9 @@ namespace Liar
 		m_pointIndexB = source.m_pointIndexB;
 		m_pointIndexC = source.m_pointIndexC;
 		m_centerCalculated = source.m_centerCalculated;
-		if (source.m_center)
-		{
-			if(!m_center) m_center = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-			m_center->Set(*(source.m_center));
-		}
+
+		m_center = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		m_center->Set(*(source.m_center));
 
 		if (source.m_sides)
 		{
@@ -154,7 +141,6 @@ namespace Liar
 	bool Triangle::CalcInit()
 	{
 		if (m_centerCalculated) return false;
-		if (!m_center) m_center = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 		m_center->Set(GetPointA());
 		(*m_center) += GetPointB();
 		(*m_center) += GetPointC();

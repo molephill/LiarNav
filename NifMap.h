@@ -58,7 +58,7 @@ namespace Liar
 		int BuildByList(ErlNifEnv*, ERL_NIF_TERM, bool = false);
 		int BuildByList(ErlNifEnv*, ERL_NIF_TERM, ERL_NIF_TERM, bool = false);
 
-		int AutoAddMap();
+		Liar::Map& AutoAddMap();
 		void DestoryLast();
 
 		Liar::Int GetBid() const { return m_bid; };

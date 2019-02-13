@@ -1,4 +1,5 @@
 #include "Line2d.h"
+#include "Delaunay.h"
 
 namespace Liar
 {
@@ -61,71 +62,7 @@ namespace Liar
 	*/
 	Liar::LineClassification Line2d::Intersection(const Liar::Line2d& other, Liar::Vector2f* pIntersectPoint)
 	{
-		Liar::Vector2f* pointA = GetVertex(m_pointIndexA);
-		Liar::Vector2f* pointB = GetVertex(m_pointIndexB);
-		Liar::Vector2f* otherPointA = other.GetVertex(other.m_pointIndexA);
-		Liar::Vector2f* otherPointB = other.GetVertex(other.m_pointIndexB);
-
-		Liar::NAVDTYPE pointAX = pointA->GetX();
-		Liar::NAVDTYPE pointAY = pointA->GetY();
-		Liar::NAVDTYPE pointBX = pointB->GetX();
-		Liar::NAVDTYPE pointBY = pointB->GetY();
-		Liar::NAVDTYPE otherPointAX = otherPointA->GetX();
-		Liar::NAVDTYPE otherPointAY = otherPointA->GetY();
-		Liar::NAVDTYPE otherPointBX = otherPointB->GetX();
-		Liar::NAVDTYPE ohterPointBY = otherPointB->GetY();
-
-
-		NAVDTYPE denom =
-			(ohterPointBY - otherPointAY)*(pointBX - pointAX)
-			-
-			(otherPointBX - otherPointAX)*(pointBY - pointAY);
-
-		NAVDTYPE u0 =
-			(otherPointBX - otherPointAX)*(pointAY - otherPointAY)
-			-
-			(ohterPointBY - otherPointAY)*(pointAY - otherPointAX);
-		NAVDTYPE u1 =
-			(otherPointAX - pointAX)*(pointBY - pointAY)
-			-
-			(otherPointAY - pointAY)*(pointBX - pointAY);
-
-		if (denom == 0.0)
-		{
-			if (u0 == 0.0 && u1 == 0.0)
-			{
-				return LineClassification::COLLINEAR;
-			}
-			else
-			{
-				return LineClassification::PARALELL;
-			}
-		}
-		else
-		{
-			//check if they intersect
-			u0 = u0 / denom;
-			u1 = u1 / denom;
-
-			NAVDTYPE x = pointAX + u0 * (pointBX - pointAX);
-			NAVDTYPE y = pointAY + u0 * (pointBY - pointAY);
-
-			if (pIntersectPoint) pIntersectPoint->Set(x, y);
-
-			if ((u0 >= 0.0) && (u0 <= 1.0) && (u1 >= 0.0) && (u1 <= 1.0))
-			{
-				return LineClassification::SEGMENTS_INTERSECT;
-			}
-			else if (u1 >= 0.0 && u1 <= 1.0)
-			{
-				return LineClassification::A_BISECTS_B;
-			}
-			else if (u0 >= 0.0 && u0 <= 1.0)
-			{
-				return LineClassification::B_BISECTS_A;
-			}
-			return LineClassification::LINES_INTERSECT;
-		}
+		return Liar::Delaunay::Intersection(*this, other, pIntersectPoint);
 	}
 
 	/**
@@ -137,7 +74,7 @@ namespace Liar
 	*/
 	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& v, bool rw, Liar::NAVDTYPE epsilon) const
 	{
-		return ClassifyPoint(v.GetX(), v.GetY(), epsilon, rw);
+		return ClassifyPoint(v.GetX(), v.GetY(), rw, epsilon);
 	}
 
 	Liar::PointClassification Line2d::ClassifyPoint(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw, Liar::NAVDTYPE epsilon) const

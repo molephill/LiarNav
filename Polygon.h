@@ -25,6 +25,8 @@ namespace Liar
 	private:
 		Liar::NAVDTYPE* m_rect;
 		Liar::Uint m_isClockWise;
+		Liar::Uint* m_pointIndices;
+		Liar::Uint m_numberPoints;
 
 	private:
 		Liar::NAVDTYPE Multiply(const Vector2f& sp, const Vector2f& ep, const Vector2f& op);
@@ -36,6 +38,9 @@ namespace Liar
 		void AutoCW(bool = true);
 		Liar::NAVDTYPE* Rectangle(bool = false);
 		Liar::NAVDTYPE* GetRect() const { return m_rect; };
+		Liar::Uint GetNumPoints() const { return m_numberPoints; };
+		void AddPointIndex(Liar::Uint);
+		Liar::Uint GetPointIndex(Liar::Uint) const;
 	};
 }
 

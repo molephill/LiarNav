@@ -19,7 +19,7 @@ namespace Liar
 	typedef int Int;
 
 	//
-	const static NAVDTYPE EPSILON = 0.000001f;
+	const static NAVDTYPE EPSILON = 0.0001f;
 	const static NAVDTYPE ZERO = 0.0f;
 
 	// define version

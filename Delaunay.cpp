@@ -18,12 +18,20 @@ namespace Liar
 			for (i = 0; i < m_totalLines; ++i)
 			{
 				m_line2ds[i]->~Line2d();
+				free(m_line2ds[i]);
 				m_line2ds[i] = nullptr;
 			}
 			free(m_line2ds);
 			m_line2ds = nullptr;
 			m_totalLines = 0;
 		}
+	}
+
+	void Delaunay::Init()
+	{
+		m_line2ds = nullptr;
+		m_totalLines = 0;
+		m_curNumLines = 0;
 	}
 
 	Liar::Uint Delaunay::Set(Liar::Map& map, bool isCW, Liar::Uint boxIndex)
@@ -37,6 +45,31 @@ namespace Liar
 		BuildEdges(map);
 		BuildTrianges(map, isCW, boxIndex);
 		return map.NavMeshLinkCells(isCW);
+	}
+
+	Liar::Line2d** Delaunay::BuildTrianges(
+		const Liar::Vector2f& p1, const Liar::Vector2f& p2, Liar::Line2d** lineV, 
+		Liar::Int& tmpLineCount, Liar::Map& map, Liar::Uint paIndex, Liar::Uint pbIndex)
+	{
+		if (FindLinePos(p1, p2, m_line2ds, m_curNumLines) < 0)
+		{
+			int index = FindLinePos(p1, p2, lineV, tmpLineCount);
+			if (index > -1)
+			{
+				lineV = RemovePosLine(lineV, tmpLineCount, index);
+			}
+			else
+			{
+				++tmpLineCount;
+				size_t blockSize = sizeof(Liar::Line2d*)*tmpLineCount;
+				if (lineV) lineV = (Liar::Line2d**)realloc(lineV, blockSize);
+				else lineV = (Liar::Line2d**)malloc(blockSize);
+				Liar::Line2d* line13 = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
+				line13->Set(&map, paIndex, pbIndex);
+				lineV[tmpLineCount - 1] = line13;
+			}
+		}
+		return lineV;
 	}
 
 	void Delaunay::BuildTrianges(Liar::Map& map, bool isCW, Liar::Uint boxIndex)
@@ -55,62 +88,44 @@ namespace Liar
 		edge->Set(initEdge);
 
 		size_t blockSize = 0;
+		Vector2f* interscetVector = (Vector2f*)malloc(sizeof(Vector2f));
+		interscetVector->Set(Liar::ZERO, Liar::ZERO);
+
+#ifdef EditorMod
+		const char* str = "findDT.txt";
+		std::ofstream outfile(str, std::ios::ate);
+		Liar::Uint logIndex = 0;
+#endif // EditorMod
 
 		do
 		{
 			idx = tmpLineCount - 1;
 
 			edge->Set(*lineV[idx]);
-			RemovePosLine(lineV, tmpLineCount, idx);
+			lineV = RemovePosLine(lineV, tmpLineCount, idx);
 
-			Liar::Int p3Index = FindDT(map, *edge, isCW);
+			Liar::Int p3Index = FindDT(map, *edge, *interscetVector, isCW);
 
 			if (p3Index < 0) continue;
 
+			Liar::Uint pointAIndex = edge->GetPointAIndex();
+			Liar::Uint pointBIndex = edge->GetPointBIndex();
+
 			Liar::Cell* addTri = (Liar::Cell*)malloc(sizeof(Liar::Cell));
-			addTri->Set(&map, edge->GetPointAIndex(), edge->GetPointBIndex(), p3Index);
+			addTri->Set(&map, pointAIndex, pointBIndex, p3Index);
 			map.AddNavMeshCell(addTri);
 
-			int index = 0;
 			Liar::Vector2f* p3 = map.GetVertex(p3Index);
-			if (FindLinePos(edge->GetPointA(), *p3, m_line2ds, m_curNumLines) < 0)
-			{
-				index = FindLinePos(edge->GetPointA(), *p3, lineV, tmpLineCount);
-				if (index > -1)
-				{
-					RemovePosLine(lineV, tmpLineCount, index);
-				}
-				else
-				{
-					++tmpLineCount;
-					blockSize = sizeof(Liar::Line2d*)*tmpLineCount;
-					if (lineV) lineV = (Liar::Line2d**)realloc(lineV, blockSize);
-					else lineV = (Liar::Line2d**)malloc(blockSize);
-					Liar::Line2d* line13 = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
-					line13->Set(&map, edge->GetPointAIndex(), p3Index);
-					lineV[tmpLineCount - 1] = line13;
-				}
-			}
+			Liar::Vector2f& pa = edge->GetPointA();
+			Liar::Vector2f& pb = edge->GetPointB();
 
-			if (FindLinePos(*p3, edge->GetPointB(), m_line2ds, m_curNumLines) < 0)
-			{
-				index = FindLinePos(*p3, edge->GetPointB(), lineV, tmpLineCount);
+#ifdef EditorMod
+			outfile << logIndex++ << " (" << tmpLineCount << ")\n";
+#endif // EditorMod
 
-				if (index > -1)
-				{
-					RemovePosLine(lineV, tmpLineCount, index);
-				}
-				else
-				{
-					++tmpLineCount;
-					blockSize = sizeof(Liar::Line2d*)*tmpLineCount;
-					if (lineV) lineV = (Liar::Line2d**)realloc(lineV, blockSize);
-					else lineV = (Liar::Line2d**)malloc(blockSize);
-					Liar::Line2d* line32 = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
-					line32->Set(&map, p3Index, edge->GetPointBIndex());
-					lineV[tmpLineCount - 1] = line32;
-				}
-			}
+
+			lineV = BuildTrianges(pa, *p3, lineV, tmpLineCount, map, pointAIndex, p3Index);
+			lineV = BuildTrianges(*p3, pb, lineV, tmpLineCount, map, p3Index, pointBIndex);
 
 		} while (tmpLineCount > 0);
 
@@ -120,6 +135,15 @@ namespace Liar
 
 		free(lineV);
 		lineV = nullptr;
+
+		interscetVector->~Vector2f();
+		free(interscetVector);
+		interscetVector = nullptr;
+
+#ifdef EditorMod
+		outfile.close();
+#endif // EditorMod
+
 	}
 
 	void Delaunay::BuildEdges(Liar::Map& map)
@@ -134,10 +158,11 @@ namespace Liar
 				Liar::Uint numPoints = polygon->GetNumPoints();
 
 				Liar::Uint pre = m_curNumLines;
-				if (m_curNumLines + numPoints > m_totalLines)
+				m_curNumLines += numPoints;
+				if (m_curNumLines > m_totalLines)
 				{
 					Liar::Uint preTotal = m_totalLines;
-					m_totalLines = m_curNumLines + numPoints;
+					m_totalLines = m_curNumLines;
 					size_t blockSize = sizeof(Liar::Line2d*)*m_totalLines;
 					if (m_line2ds) m_line2ds = (Liar::Line2d**)realloc(m_line2ds, blockSize);
 					else m_line2ds = (Liar::Line2d**)malloc(blockSize);
@@ -146,6 +171,7 @@ namespace Liar
 					{
 						Liar::Line2d* tmpLine = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
 						tmpLine->Set(&map);
+						m_line2ds[initMap] = tmpLine;
 					}
 				}
 
@@ -157,6 +183,9 @@ namespace Liar
 					m_line2ds[pre + j - 1]->Set(p1, p2);
 					p1 = p2;
 				}
+				p1 = polygon->GetPointIndex(numPoints - 1);
+				p2 = polygon->GetPointIndex(0);
+				m_line2ds[pre + numPoints - 1]->Set(p1, p2);
 			}
 		}
 	}
@@ -167,7 +196,7 @@ namespace Liar
 		Liar::Uint numPoints = 0;
 		Liar::Uint boundEdgeNum = map.GetPolygon(boundIndex)->GetNumPoints();
 
-		Line2d* initEdge = m_line2ds[0];
+		Liar::Line2d* initEdge = m_line2ds[0];
 
 		bool loopSign = false;
 		Liar::Uint loopIdx = 0;
@@ -187,7 +216,9 @@ namespace Liar
 				{
 					pointIndex = polygon->GetPointIndex(j);
 					cit = polygon->GetVertex(pointIndex);
-					if (cit->Equals(initEdge->GetPointA()) || cit->Equals(initEdge->GetPointB())) continue;
+					Liar::Vector2f& pa = initEdge->GetPointA();
+					Liar::Vector2f& pb = initEdge->GetPointB();
+					if (cit->Equals(pa) || cit->Equals(pb)) continue;
 					if (initEdge->ClassifyPoint(*cit, isCW) == Liar::PointClassification::ON_LINE)
 					{
 						loopSign = true;
@@ -201,28 +232,23 @@ namespace Liar
 		return *initEdge;
 	}
 
-	Liar::Int Delaunay::FindDT(Liar::Map& map, const Liar::Line2d& line, bool isCW)
+	Liar::Int Delaunay::FindDT(Liar::Map& map, const Liar::Line2d& line, Liar::Vector2f& interscetVector, bool isCW)
 	{
 		Liar::Uint* allPoint = nullptr;
 		int allPointCount = 0;
 
-		Liar::Uint numPolygons = map.GetNumPolygon();
-		Liar::Uint numPoints = 0;
-		for (Liar::Uint i = 0; i < numPolygons; ++i)
+		Liar::Uint numPoints = map.GetNumPoints();
+		size_t blockSize = 0;
+		for (Liar::Uint i = 0; i < numPoints; ++i)
 		{
-			Liar::Polygon* polygon = map.GetPolygon(i);
-			numPoints = polygon->GetNumPoints();
-			for (Liar::Uint j = 0; j < numPoints; ++j)
+			Liar::Vector2f* it = map.GetVertex(i);
+			if (IsVisiblePointOfLine(*it, line, interscetVector, isCW))
 			{
-				Liar::Uint pointIndex = polygon->GetPointIndex(j);
-				if (IsVisiblePointOfLine(map, pointIndex, line, isCW))
-				{
-					++allPointCount;
-					size_t blockSize = sizeof(Liar::Uint)*allPointCount;
-					if (allPoint) allPoint = (Liar::Uint*)realloc(allPoint, blockSize);
-					else allPoint = (Liar::Uint*)malloc(blockSize);
-					allPoint[allPointCount - 1] = pointIndex;
-				}
+				++allPointCount;
+				blockSize = sizeof(Liar::Uint)*allPointCount;
+				if (allPoint) allPoint = (Liar::Uint*)realloc(allPoint, blockSize);
+				else allPoint = (Liar::Uint*)malloc(blockSize);
+				allPoint[allPointCount - 1] = i;
 			}
 		}
 
@@ -235,9 +261,9 @@ namespace Liar
 		Liar::Vector2f* p3 = map.GetVertex(p3Index);
 
 		bool loopSign = false;
-		NAVDTYPE* fv = (NAVDTYPE*)malloc(sizeof(NAVDTYPE) * 4);
-		Delaunay::Circle* cir = (Delaunay::Circle*)malloc(sizeof(Delaunay::Circle));
-		cir->Set(0.0f, 0.0f, 0.0f);
+		Liar::NAVDTYPE* fv = (Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE) * 4);
+		Liar::Delaunay::Circle* cir = (Delaunay::Circle*)malloc(sizeof(Delaunay::Circle));
+		cir->Init();
 		do
 		{
 			loopSign = false;
@@ -248,21 +274,21 @@ namespace Liar
 			for (int i = 0; i < allPointCount; ++i)
 			{
 				Liar::Uint tmpP3Index = allPoint[i];
-				Vector2f* vec = map.GetVertex(tmpP3Index);
+				Liar::Vector2f* vec = map.GetVertex(tmpP3Index);
 				if (vec->Equals(p1) || vec->Equals(p2) || vec->Equals(*p3)) continue;
 
-				NAVDTYPE x = vec->GetX();
-				NAVDTYPE y = vec->GetY();
-				NAVDTYPE minx = fv[0];
-				NAVDTYPE maxx = fv[2];
-				NAVDTYPE miny = fv[1];
-				NAVDTYPE maxy = fv[3];
+				Liar::NAVDTYPE x = vec->GetX();
+				Liar::NAVDTYPE y = vec->GetY();
+				Liar::NAVDTYPE minx = fv[0];
+				Liar::NAVDTYPE maxx = fv[2];
+				Liar::NAVDTYPE miny = fv[1];
+				Liar::NAVDTYPE maxy = fv[3];
 
 
 				if (x < minx || x > maxx || y < miny || y > maxy) continue;
 
 
-				NAVDTYPE a1 = abs(LineAngle(p1, *vec, p2));
+				Liar::NAVDTYPE a1 = abs(LineAngle(p1, *vec, p2));
 				if (a1 > angle132)
 				{
 					p3Index = tmpP3Index;
@@ -284,73 +310,117 @@ namespace Liar
 		return p3Index;
 	}
 
-	bool Delaunay::IsVisiblePointOfLine(Liar::Map& map, Liar::Uint vecIndex, const Line2d& line, bool rw)
+	bool Delaunay::IsVisiblePointOfLine(const Vector2f& vec, const Line2d& line, Liar::Vector2f& interscetVector, bool rw)
 	{
-		Liar::Vector2f& vec = *(map.GetVertex(vecIndex));
+		Liar::Vector2f& pa = line.GetPointA();
+		Liar::Vector2f& pb = line.GetPointB();
 
-		if (vec.Equals(line.GetPointA()) || vec.Equals(line.GetPointB()))
-		{
-			return false;
-		}
-
-
-		if (line.ClassifyPoint(vec, rw) != PointClassification::RIGHT_SIDE) {
-			return false;
-		}
-
-		if (IsVisibleIn2Point(map, line.GetPointAIndex(), vecIndex) == false)
-		{
-			return false;
-		}
-
-
-		if (IsVisibleIn2Point(map, line.GetPointBIndex(), vecIndex) == false)
-		{
-			return false;
-		}
+		if (vec.Equals(pa) || vec.Equals(pb)) return false;
+		if (line.ClassifyPoint(vec,rw) != Liar::PointClassification::RIGHT_SIDE) return false;
+		if (IsVisibleIn2Point(pa, vec, interscetVector) == false) return false;
+		if (IsVisibleIn2Point(pb, vec, interscetVector) == false) return false;
 
 		return true;
 	}
 
-	bool Delaunay::IsVisibleIn2Point(Liar::Map& map, Liar::Uint pa, Liar::Uint pb)
+	bool Delaunay::IsVisibleIn2Point(const Vector2f& pa, const Vector2f& pb, Liar::Vector2f& interscetVector)
 	{
-		Line2d* linepapb = (Line2d*)malloc(sizeof(Line2d));
-		linepapb->Set(&map);
-		linepapb->Set(pa, pb);
-
-		Vector2f* interscetVector = (Vector2f*)malloc(sizeof(Vector2f));
-		interscetVector->Set(0.0f, 0.0f);
-
 		for (Liar::Uint i = 0; i < m_curNumLines; ++i)
 		{
 			Line2d* limeTmp = m_line2ds[i];
-			if (linepapb->Intersection(*limeTmp, interscetVector) == LineClassification::SEGMENTS_INTERSECT)
+			if (Liar::Delaunay::Intersection(pa, pb, *limeTmp, &interscetVector) == Liar::LineClassification::SEGMENTS_INTERSECT)
 			{
-				Liar::Vector2f& pa = linepapb->GetPointA();
-				Liar::Vector2f& pb = linepapb->GetPointB();
-				if (!pa.Equals(*interscetVector) && !pb.Equals(*interscetVector))
+				if (!pa.Equals(interscetVector) && !pb.Equals(interscetVector))
 				{
-					linepapb->~Line2d();
-					free(linepapb);
-					interscetVector->~Vector2f();
-					free(interscetVector);
-					linepapb = nullptr;
-					interscetVector = nullptr;
 					return false;
 				}
 			}
 		}
-
-		linepapb->~Line2d();
-		free(linepapb);
-		interscetVector->~Vector2f();
-		free(interscetVector);
-		linepapb = nullptr;
-		interscetVector = nullptr;
 		return true;
 	}
 
-	void Delaunay::RemovePosLine(Liar::Line2d** lv, int& lvlen, int pos)
+	Liar::LineClassification Delaunay::Intersection(
+		const Liar::Line2d& line0,
+		const Liar::Line2d& line, Liar::Vector2f* pIntersectPoint)
+	{
+		return Liar::Delaunay::Intersection(line0.GetPointA(), line0.GetPointB(), line.GetPointA(), line.GetPointB(), pIntersectPoint);
+	}
+
+	Liar::LineClassification Delaunay::Intersection(
+		const Liar::Vector2f& pointA, const Liar::Vector2f& pointB,
+		const Liar::Line2d& line, Liar::Vector2f* pIntersectPoint)
+	{
+		return Liar::Delaunay::Intersection(pointA, pointB, line.GetPointA(), line.GetPointB(), pIntersectPoint);
+	}
+
+	Liar::LineClassification Delaunay::Intersection(
+		const Liar::Vector2f& pointA, const Liar::Vector2f& pointB,
+		const Liar::Vector2f& otherPointA, const Liar::Vector2f& otherPointB,
+		Liar::Vector2f* pIntersectPoint)
+	{
+		Liar::NAVDTYPE pointAX = pointA.GetX();
+		Liar::NAVDTYPE pointAY = pointA.GetY();
+		Liar::NAVDTYPE pointBX = pointB.GetX();
+		Liar::NAVDTYPE pointBY = pointB.GetY();
+		Liar::NAVDTYPE otherPointAX = otherPointA.GetX();
+		Liar::NAVDTYPE otherPointAY = otherPointA.GetY();
+		Liar::NAVDTYPE otherPointBX = otherPointB.GetX();
+		Liar::NAVDTYPE ohterPointBY = otherPointB.GetY();
+
+
+		Liar::NAVDTYPE denom =
+			(ohterPointBY - otherPointAY)*(pointBX - pointAX)
+			-
+			(otherPointBX - otherPointAX)*(pointBY - pointAY);
+
+		Liar::NAVDTYPE u0 =
+			(otherPointBX - otherPointAX)*(pointAY - otherPointAY)
+			-
+			(ohterPointBY - otherPointAY)*(pointAX - otherPointAX);
+		Liar::NAVDTYPE u1 =
+			(otherPointAX - pointAX)*(pointBY - pointAY)
+			-
+			(otherPointAY - pointAY)*(pointBX - pointAX);
+
+		if (denom == 0.0)
+		{
+			if (u0 == 0.0 && u1 == 0.0)
+			{
+				return Liar::LineClassification::COLLINEAR;
+			}
+			else
+			{
+				return Liar::LineClassification::PARALELL;
+			}
+		}
+		else
+		{
+			//check if they intersect
+			u0 = u0 / denom;
+			u1 = u1 / denom;
+
+			Liar::NAVDTYPE x = pointAX + u0 * (pointBX - pointAX);
+			Liar::NAVDTYPE y = pointAY + u0 * (pointBY - pointAY);
+
+			if (pIntersectPoint) pIntersectPoint->Set(x, y);
+
+			if ((u0 >= 0.0) && (u0 <= 1.0) && (u1 >= 0.0) && (u1 <= 1.0))
+			{
+				return Liar::LineClassification::SEGMENTS_INTERSECT;
+			}
+			else if (u1 >= 0.0 && u1 <= 1.0)
+			{
+				return Liar::LineClassification::A_BISECTS_B;
+			}
+			else if (u0 >= 0.0 && u0 <= 1.0)
+			{
+				return Liar::LineClassification::B_BISECTS_A;
+			}
+			return Liar::LineClassification::LINES_INTERSECT;
+		}
+	}
+
+	Liar::Line2d** Delaunay::RemovePosLine(Liar::Line2d** lv, int& lvlen, int pos)
 	{
 		int tmpLen = lvlen;
 		for (int i = 0; i < tmpLen; ++i)
@@ -364,12 +434,13 @@ namespace Liar
 				if (i == pos)
 				{
 					lv[i]->~Line2d();
+					free(lv[i]);
 					lv[i] = nullptr;
 					--lvlen;
 				}
 			}
 		}
-		
+		return lv;
 	}
 
 	void Delaunay::CircumCircle(const Liar::Vector2f& p1, const Liar::Vector2f& p2, const Liar::Vector2f& p3, Liar::Delaunay::Circle& cir)
@@ -442,7 +513,7 @@ namespace Liar
 		Liar::NAVDTYPE ex = e.GetX();
 		Liar::NAVDTYPE ey = e.GetY();
 
-		NAVDTYPE cosfi = 0.0f, fi = 0.0f, norm = 0.0f;
+		NAVDTYPE cosfi = Liar::ZERO, fi = 0.0f, norm = Liar::ZERO;
 		NAVDTYPE dsx = sx - ox;
 		NAVDTYPE dsy = sy - oy;
 		NAVDTYPE dex = ex - ox;
@@ -472,10 +543,345 @@ namespace Liar
 		return -1;
 	}
 
+#ifdef UNION_POLYGON
+	void Delaunay::ExpandNodes(Liar::Uint type, Liar::Uint num)
+	{
+		Liar::Uint curNum = type == 1 ? Liar::Delaunay::m_numberNode1 : Liar::Delaunay::m_numberNode2;
+		if (curNum < num)
+		{
+			size_t blockSize = sizeof(Liar::Delaunay::Node*)*num;
+			Liar::Delaunay::Node** nodes = nullptr;
+			if (type == 1)
+			{
+				if (Liar::Delaunay::m_nodes1) Liar::Delaunay::m_nodes1 = (Liar::Delaunay::Node**)realloc(Liar::Delaunay::m_nodes2, blockSize);
+				else Liar::Delaunay::m_nodes1 = (Liar::Delaunay::Node**)malloc(blockSize);
+				nodes = Liar::Delaunay::m_nodes1;
+			}
+			else
+			{
+				if (Liar::Delaunay::m_nodes2) Liar::Delaunay::m_nodes2 = (Liar::Delaunay::Node**)realloc(Liar::Delaunay::m_nodes2, blockSize);
+				else Liar::Delaunay::m_nodes2 = (Liar::Delaunay::Node**)malloc(blockSize);
+				nodes = Liar::Delaunay::m_nodes2;
+			}
+
+			for (Liar::Uint i = curNum; i < num; ++i)
+			{
+				Liar::Delaunay::Node* node = (Liar::Delaunay::Node*)malloc(sizeof(Liar::Delaunay::Node));
+				node->Set(0, false, false);
+				nodes[i] = node;
+			}
+
+			if (type == 1) Liar::Delaunay::m_numberNode1 = num;
+			else Liar::Delaunay::m_numberNode2 = num;
+		}
+	}
+
+	bool Delaunay::Expand(Liar::Uint num1, Liar::Uint num2)
+	{
+		if ((num1 >= num2) && (Liar::Delaunay::m_numberNode1 >= Liar::Delaunay::m_numberNode2))
+		{
+			ExpandNodes(1, num1);
+			ExpandNodes(2, num2);
+			return false;
+		}
+		else
+		{
+			ExpandNodes(2, num1);
+			ExpandNodes(1, num2);
+			return true;
+		}
+	}
+
+	Liar::Uint Delaunay::UnionPolygons(Liar::Map& map, const Liar::Polygon& p0, const Liar::Polygon& p, bool rw)
+	{
+		Liar::NAVDTYPE* sr = p0.GetRect();
+		Liar::NAVDTYPE* pr = p.GetRect();
+
+		Liar::Uint unionNum = 0;
+
+		if (CheckCross(sr, pr))
+		{
+			Liar::Uint num = p0.GetNumPoints();
+			Liar::Uint pnum = p.GetNumPoints();
+
+			bool revert = Expand(num, pnum);
+
+			Liar::Delaunay::Node** cv0 = Liar::Delaunay::m_nodes1;
+			Liar::Delaunay::Node** cv1 = Liar::Delaunay::m_nodes2;
+			if (revert)
+			{
+				cv0 = Liar::Delaunay::m_nodes2;
+				cv1 = Liar::Delaunay::m_nodes1;
+			}
+
+			Liar::Uint i = 0;
+			for (i = 0; i < num; ++i)
+			{
+				cv0[i]->Set(i, false, true);
+				if (i > 0) cv0[i - 1]->next = cv0[i];
+			}
+
+			for (i = 0; i < pnum; ++i)
+			{
+				cv1[i]->Set(i, false, false);
+				if (i > 0) cv1[i - 1]->next = cv1[i];
+			}
+
+			if (IntersectPoint(map, num, pnum, revert, rw) > 0)
+			{
+				unionNum = LinkToPolygon(map, num, pnum, revert);
+			}
+		}
+
+		return unionNum;
+	}
+
+	int Delaunay::IntersectPoint(Liar::Map& map, Liar::Uint& cv0c, Liar::Uint& cv1c, bool revert, bool rw)
+	{
+		Liar::Delaunay::Node** cv0 = Liar::Delaunay::m_nodes1;
+		Liar::Delaunay::Node** cv1 = Liar::Delaunay::m_nodes2;
+		if (revert)
+		{
+			cv0 = Liar::Delaunay::m_nodes2;
+			cv1 = Liar::Delaunay::m_nodes1;
+		}
+
+		Liar::Int insCnt = 0;
+		bool hasIns = false;
+		Liar::Delaunay::Node* startNode0 = cv0[0];
+		Liar::Delaunay::Node* startNode1 = nullptr;
+		Liar::Delaunay::Node* test = nullptr;
+
+		Liar::Vector2f* ins = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		ins->Set(Liar::ZERO, Liar::ZERO);
+
+		size_t size = sizeof(Liar::Line2d);
+		Liar::Line2d* line0 = (Liar::Line2d*)malloc(size);
+		Liar::Line2d* line1 = (Liar::Line2d*)malloc(size);
+		line0->Set(&map);
+		line1->Set(&map);
+
+		Liar::Int prec0 = 0;
+		Liar::Int prec1 = 0;
+
+		while (startNode0)
+		{
+			test = startNode0->next ? startNode0->next : cv0[0];
+			line0->Set(startNode0->v, test->v);
+
+			startNode1 = cv1[0];
+			hasIns = false;
+
+			while (startNode1)
+			{
+				test = startNode1->next ? startNode1->next : cv1[0];
+				line1->Set(startNode1->v, test->v);
+
+				ins->Set(Liar::ZERO, Liar::ZERO);
+
+				if (line0->Intersection(*line1, ins) == Liar::LineClassification::SEGMENTS_INTERSECT)
+				{
+					if (GetNodeIndex(cv0, cv0c, *ins) == -1)
+					{
+						++insCnt;
+
+						prec0 = cv0c;
+						prec1 = cv1c;
+
+						// expand
+
+						Liar::Uint addPointIndex = map.AddVertex(*ins);
+
+						Liar::Delaunay::Node* Node0 = cv0[prec0];
+						Liar::Delaunay::Node* Node1 = cv1[prec1];
+
+						Node0->Set(addPointIndex, true, true);
+						Node1->Set(addPointIndex, true, false);
+
+						Node0->other = Node1;
+						Node1->other = Node0;
+
+
+						Node0->next = startNode0->next;
+						startNode0->next = Node0;
+						Node1->next = startNode1->next;
+						startNode1->next = Node1;
+
+						Liar::Vector2f& line1PointB = line1->GetPointB();
+						if (line0->ClassifyPoint(line1PointB, rw) == Liar::PointClassification::RIGHT_SIDE)
+						{
+							Node0->o = true;
+							Node1->o = true;
+						}
+
+						hasIns = true;
+						break;
+					}
+				}
+
+				startNode1 = startNode1->next;
+			}
+
+			if (hasIns == false)
+			{
+				startNode0 = startNode0->next;
+			}
+		}
+
+		ins->~Vector2f();
+		free(ins);
+		ins = nullptr;
+
+		line0->~Line2d();
+		free(line0);
+		line0 = nullptr;
+
+		line1->~Line2d();
+		free(line1);
+		line1 = nullptr;
+
+		return insCnt;
+	}
+
+	Liar::Uint Delaunay::LinkToPolygon(Liar::Map& map, Liar::Uint cv0c, Liar::Uint cv1c, bool revert)
+	{
+		Liar::Uint linkNum = 0;
+
+		Liar::Delaunay::Node** cv0 = Liar::Delaunay::m_nodes1;
+		Liar::Delaunay::Node** cv1 = Liar::Delaunay::m_nodes2;
+		if (revert)
+		{
+			cv0 = Liar::Delaunay::m_nodes2;
+			cv1 = Liar::Delaunay::m_nodes1;
+		}
+
+		for (Liar::Uint i = 0; i < cv0c; ++i)
+		{
+			Liar::Delaunay::Node* testNode = cv0[i];
+			if (testNode->i == true && testNode->p == false)
+			{
+				Vector2f* rcNodes = nullptr;
+				int rcNum = 0;
+				int test = 0;
+				while (testNode)
+				{
+					testNode->p = true;
+
+					if (testNode->i == true)
+					{
+						testNode->other->p = true;
+
+						if (testNode->o == false)
+						{
+							if (testNode->isMain == true) testNode = testNode->other;
+						}
+						else
+						{
+							if (testNode->isMain == false) testNode = testNode->other;
+						}
+					}
+
+					++rcNum;
+					if (rcNodes) rcNodes = (Vector2f*)realloc(rcNodes, sizeof(Vector2f)*rcNum);
+					else rcNodes = (Vector2f*)malloc(sizeof(Vector2f)*rcNum);
+
+					Liar::Vector2f* testNodePoint = testNode->GetVertex(testNode->v);
+					rcNodes[rcNum - 1].Set(*testNodePoint);
+					++test;
+					if (!testNode->next) testNode = testNode->isMain ? cv0[0] : cv1[0];
+					else testNode = testNode->next;
+
+					if (testNodePoint->Equals(rcNodes[0])) break;
+				}
+
+				if (rcNum > 0)
+				{
+					++linkNum;
+					map.AddPolygon(rcNodes, rcNum);
+				}
+
+			}
+		}
+		return linkNum;
+	}
+
+	int Delaunay::GetNodeIndex(Liar::Delaunay::Node** cv, int ncount, const Liar::Vector2f& Node)
+	{
+		for (int i = 0; i < ncount; ++i)
+		{
+			Liar::Delaunay::Node& node = *(cv[i]);
+			Liar::Vector2f* vec = node.GetVertex(node.v);
+			if (vec->Equals(Node)) return i;
+		}
+		return -1;
+	}
+
+	void Delaunay::DisposeNodes()
+	{
+		Liar::Uint i = 0;
+		if (m_nodes1)
+		{
+			for (i = 0; i < m_numberNode1; ++i)
+			{
+				m_nodes1[i]->~Node();
+				m_nodes1[i] = nullptr;
+			}
+			free(m_nodes1);
+			m_nodes1 = nullptr;
+			m_numberNode1 = 0;
+		}
+
+		if (m_nodes2)
+		{
+			for (i = 0; i < m_numberNode2; ++i)
+			{
+				m_nodes2[i]->~Node();
+				m_nodes2[i] = nullptr;
+			}
+
+			free(m_nodes2);
+			m_nodes2 = nullptr;
+			m_numberNode2 = 0;
+		}
+	}
+
+	bool Delaunay::CheckCross(Liar::NAVDTYPE r1[], Liar::NAVDTYPE r2[])
+	{
+		NAVDTYPE minx1 = r1[0];
+		NAVDTYPE maxx1 = r1[1];
+		NAVDTYPE miny1 = r1[2];
+		NAVDTYPE maxy1 = r1[3];
+
+		NAVDTYPE minx2 = r2[0];
+		NAVDTYPE maxx2 = r2[1];
+		NAVDTYPE miny2 = r2[2];
+		NAVDTYPE maxy2 = r2[3];
+
+		NAVDTYPE minx = minx1 > minx2 ? minx1 : minx2;
+		NAVDTYPE miny = miny1 > miny2 ? miny1 : miny2;
+		NAVDTYPE maxx = maxx1 > maxx2 ? maxx2 : maxx1;
+		NAVDTYPE maxy = maxy1 > maxy2 ? maxy2 : maxy1;
+
+		if (minx > maxx || miny > maxy)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	Liar::Delaunay::Node** Liar::Delaunay::m_nodes1 = nullptr;
+	Liar::Delaunay::Node** Liar::Delaunay::m_nodes2 = nullptr;
+	Liar::Uint Liar::Delaunay::m_numberNode1 = 0;
+	Liar::Uint Liar::Delaunay::m_numberNode2 = 0;
+#endif // UNION_POLYGON
+
 	// ================================================ circle =======================================
 	Delaunay::Circle::Circle() :
 		center((Liar::Vector2f*)malloc(sizeof(Liar::Vector2f))),
-		r(0.0f)
+		r(Liar::ZERO)
 	{}
 
 	Delaunay::Circle::~Circle()
@@ -485,6 +891,13 @@ namespace Liar
 		center = nullptr;
 	}
 
+	void Delaunay::Circle::Init()
+	{
+		center = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		center->Set(Liar::ZERO, Liar::ZERO);
+		r = Liar::ZERO;
+	}
+
 	void Delaunay::Circle::Set(const Liar::Vector2f& v, Liar::NAVDTYPE rr)
 	{
 		Set(v.GetX(), v.GetY(), rr);
@@ -492,9 +905,39 @@ namespace Liar
 
 	void Delaunay::Circle::Set(Liar::NAVDTYPE x, Liar::NAVDTYPE y, Liar::NAVDTYPE rr)
 	{
-		if (!center) center = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 		center->Set(x, y);
 		r = rr;
 	}
 	// ================================================ circle =======================================
+
+	// ============================== Node =========================
+	Liar::Delaunay::Node::Node(Liar::Map const* map) :
+		Liar::MapSource(map),
+		v(0), i(false), p(false), o(false), isMain(false),
+		other(nullptr), next(nullptr)
+	{}
+
+	Liar::Delaunay::Node::~Node()
+	{
+		m_map = nullptr;
+		other = nullptr;
+		next = nullptr;
+	}
+
+	void Liar::Delaunay::Node::Init(Liar::Map const* map)
+	{
+		Liar::MapSource::Set(map);
+
+		v = 0;
+		i = p = o = isMain = false;
+		other = next = nullptr;
+	}
+
+	void Liar::Delaunay::Node::Set(Liar::Uint v0, bool isInters, bool main)
+	{
+		v = v0;
+		i = isInters;
+		isMain = main;
+	}
+	// ============================== Node =========================
 }

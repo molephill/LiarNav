@@ -1,10 +1,5 @@
 #include "NifMap.h"
 
-#if defined(DEBUG_NIF) || defined(EditorMod)
-#include <fstream>
-#include <iostream>
-#endif // DEBUG_NIF
-
 namespace Liar
 {
 	NifMap::NifMap() :
@@ -15,6 +10,18 @@ namespace Liar
 
 	NifMap::~NifMap()
 	{
+		if (m_mapList)
+		{
+			for (Liar::Uint i = 0; i < m_mapcount; ++i)
+			{
+				m_mapList[i]->~Map();
+				free(m_mapList[i]);
+				m_mapList[i] = nullptr;
+			}
+			free(m_mapList);
+			m_mapList = nullptr;
+			m_mapcount = 0;
+		}
 	}
 
 	// from erlang to nav_type
@@ -47,13 +54,13 @@ namespace Liar
 		NAVDTYPE x = 0.0, y = 0.0;
 		const ERL_NIF_TERM* termArray;
 
-		int mapIndex = AutoAddMap();
+		Liar::Map& map = AutoAddMap();
 		Liar::Uint pointIndex = 0;
 		Liar::Polygon* polygon = nullptr;
 
 		while (enif_get_list_cell(env, Info, &head, &tail))
 		{
-			if (isWall) polygon = &(m_mapList[mapIndex]->AutoAddPolygon());
+			if (isWall) polygon = &(map.AutoAddPolygon());
 			else polygon = nullptr;
 
 			while (enif_get_list_cell(env, head, &subHead, &subTail))
@@ -66,7 +73,7 @@ namespace Liar
 
 					if (polygon)
 					{
-						pointIndex = m_mapList[mapIndex]->AddVertex(x, y);
+						pointIndex = map.AddVertex(x, y);
 						polygon->AddPointIndex(pointIndex);
 					}
 				}
@@ -134,7 +141,7 @@ namespace Liar
 	}
 
 	// 自动增加一块场景数据
-	int NifMap::AutoAddMap()
+	Liar::Map& NifMap::AutoAddMap()
 	{
 		++m_mapcount;
 		size_t blockSize = sizeof(Liar::Map*)*m_mapcount;
@@ -143,7 +150,7 @@ namespace Liar
 		Liar::Map* map = (Liar::Map*)malloc(sizeof(Liar::Map));
 		map->Init();
 		m_mapList[m_mapcount - 1] = map;
-		return m_mapcount - 1;
+		return *map;
 	}
 
 	void NifMap::CheckAddPolygon(Vector2f* v, int vecIndex)
@@ -213,7 +220,11 @@ namespace Liar
 
 	Liar::Int NifMap::BuildIndex(Liar::Uint index, bool cw)
 	{
-		if (!Liar::NifMap::m_delaunay) Liar::NifMap::m_delaunay = (Liar::Delaunay*)malloc(sizeof(Liar::Delaunay));
+		if (!Liar::NifMap::m_delaunay)
+		{
+			Liar::NifMap::m_delaunay = (Liar::Delaunay*)malloc(sizeof(Liar::Delaunay));
+			Liar::NifMap::m_delaunay->Init();
+		}
 		return Liar::NifMap::m_delaunay->Set(*(m_mapList[index]), cw);
 	}
 

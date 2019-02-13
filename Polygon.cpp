@@ -6,7 +6,8 @@ namespace Liar
 {
 	Polygon::Polygon(const Liar::Map* map):
 		Liar::MapSource(map),
-		m_rect(nullptr), m_isClockWise(Liar::ClockWiseDefine::CLOCK_NO_DEFINE)
+		m_rect(nullptr), m_isClockWise(Liar::ClockWiseDefine::CLOCK_NO_DEFINE),
+		m_pointIndices(nullptr), m_numberPoints(0)
 	{
 	}
 
@@ -20,12 +21,21 @@ namespace Liar
 			free(m_rect);
 			m_rect = nullptr;
 		}
+
+		if (m_pointIndices)
+		{
+			free(m_pointIndices);
+			m_pointIndices = nullptr;
+		}
+		m_numberPoints = 0;
 	}
 
 	void Polygon::Set(Liar::Map const* map)
 	{
 		Liar::MapSource::Set(map);
 		m_rect = nullptr;
+		m_pointIndices = nullptr;
+		m_numberPoints = 0;
 	}
 
 	void Polygon::Set(const Liar::Polygon& source)
@@ -37,6 +47,34 @@ namespace Liar
 			m_rect = (Liar::NAVDTYPE*)malloc(size);
 			memcpy(m_rect, source.m_rect, size);
 		}
+
+		if (m_pointIndices)
+		{
+			free(m_pointIndices);
+			m_pointIndices = nullptr;
+		}
+		m_numberPoints = source.m_numberPoints;
+		if (m_numberPoints > 0)
+		{
+			size_t size = sizeof(Liar::Uint)*m_numberPoints;
+			m_pointIndices = (Liar::Uint*)malloc(size);
+			memcpy(m_pointIndices, source.m_pointIndices, size);
+		}
+	}
+
+	void Polygon::AddPointIndex(Liar::Uint index)
+	{
+		m_numberPoints++;
+		size_t size = sizeof(Liar::Uint)*m_numberPoints;
+		if (!m_pointIndices) m_pointIndices = (Liar::Uint*)malloc(size);
+		else m_pointIndices = (Liar::Uint*)realloc(m_pointIndices, size);
+		m_pointIndices[m_numberPoints - 1] = index;
+	}
+
+	Liar::Uint Polygon::GetPointIndex(Liar::Uint index) const
+	{
+		if (index >= m_numberPoints) return m_numberPoints;
+		return m_pointIndices[index];
 	}
 
 	/**

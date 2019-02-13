@@ -5,7 +5,7 @@ namespace Liar
 	Cell::Cell(Liar::Map const* map):
 		Liar::Triangle(map),
 		m_index(0), m_links((Liar::Int*)malloc(sizeof(Liar::Int) * 3)),
-		sessionId(0),f(0.0f),h(0.0f),
+		sessionId(0),f(Liar::ZERO),h(Liar::ZERO),
 		isOpen(false),parent(nullptr), arrivalWall(-1), checkLinkCount(0),
 		m_wallDistance((Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE)*3))
 	{
@@ -20,19 +20,17 @@ namespace Liar
 		free(m_wallDistance);
 	}
 
-	void Cell::Set(Liar::Map const* map)
+	// TODO extend
+	bool Cell::Set(Liar::Map const* map, Liar::Uint a, Liar::Uint b, Liar::Uint c)
 	{
 		Liar::Triangle::Set(map);
 
 		m_links = (Liar::Int*)malloc(sizeof(Liar::Int) * 3);
+		m_links[0] = m_links[1] = m_links[2] = -1;
 		m_wallDistance = (Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE) * 3);
 		m_index = 0;
-		f = h = 0.0f;
-	}
+		f = h = Liar::ZERO;
 
-	// TODO extend
-	bool Cell::Set(Liar::Uint a, Liar::Uint b, Liar::Uint c)
-	{
 		if (a != m_pointIndexA || b != m_pointIndexB || c != m_pointIndexC)
 		{
 			m_pointIndexA = a;
@@ -45,34 +43,17 @@ namespace Liar
 		return false;
 	}
 
-	bool Cell::Set(const Liar::Map* map, Liar::Uint a, Liar::Uint b, Liar::Uint c)
-	{
-		if (m_map != map || a != m_pointIndexA || b != m_pointIndexB || c != m_pointIndexC)
-		{
-			Liar::MapSource::Set(map);
-			m_pointIndexA = a;
-			m_pointIndexB = b;
-			m_pointIndexC = c;
-			m_centerCalculated = false;
-			CalcInit();
-			m_index = 0;
-			f = h = 0.0f;
-			return true;
-		}
-		return false;
-	}
-
 	void Cell::Set(const Liar::Cell& source)
 	{
 		Liar::Triangle::Set(source);
 
 		size_t blockSize = sizeof(Liar::Int) * 3;
 
-		if(!m_links) m_links = (Liar::Int*)malloc(blockSize);
-		if (source.m_links) memcpy(m_links, source.m_links, blockSize);
+		m_links = (Liar::Int*)malloc(blockSize);
+		memcpy(m_links, source.m_links, blockSize);
 
 		blockSize = sizeof(Liar::NAVDTYPE) * 3;
-		if (source.m_wallDistance) memcpy(m_wallDistance, source.m_wallDistance, blockSize);
+		memcpy(m_wallDistance, source.m_wallDistance, blockSize);
 
 		m_index = source.m_index;
 		sessionId = source.sessionId;

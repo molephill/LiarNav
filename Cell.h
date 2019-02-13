@@ -39,10 +39,8 @@ namespace Liar
 		Liar::Int checkLinkCount;
 
 	public:
-		void Set(Liar::Map const*);
-		bool Set(Liar::Uint, Liar::Uint, Liar::Uint);
+		bool Set(Liar::Map const*, Liar::Uint, Liar::Uint, Liar::Uint);
 		void Set(const Liar::Cell&);
-		bool Set(const Liar::Map*, Liar::Uint, Liar::Uint, Liar::Uint);
 		void SetIndex(Liar::Int);
 		void CheckAndLink(Liar::Cell&);
 		bool CheckAllLink() const;

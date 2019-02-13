@@ -246,10 +246,6 @@ static ERL_NIF_TERM can_walk(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 static ERL_NIF_TERM free_delaunay(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
 	Liar::NifMap::FreeDelaunay();
-#ifdef UNION_POLYGON
-	Liar::Map::DisposeNodes();
-#endif // UNION_POLYGON
-
 	return enif_make_int(env, 0);
 }
 

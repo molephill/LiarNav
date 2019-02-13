@@ -57,7 +57,7 @@ namespace Liar
 
 	void Vector2f::Zero()
 	{
-		m_x = m_y = 0.0f;
+		m_x = m_y = Liar::ZERO;
 	}
 
 	bool Vector2f::Equals(const Vector2f& rhs, Liar::NAVDTYPE e) const

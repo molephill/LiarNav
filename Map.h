@@ -19,9 +19,6 @@ namespace Liar
 	class Map
 #endif // EditorMod
 	{
-	private:
-		class Node;
-
 	public:
 		Map();
 		~Map();
@@ -50,6 +47,7 @@ namespace Liar
 		Liar::Uint AddVertex(Liar::NAVDTYPE, Liar::NAVDTYPE);
 
 		Liar::Uint GetNumPolygon() const { return m_numberPolygon; };
+		Liar::Uint GetNumPoints() const { return m_numberVertex; };
 		Liar::Polygon* GetPolygon(Liar::Uint);
 
 		void CalcBound(const Liar::Vector2f&);
@@ -76,58 +74,13 @@ namespace Liar
 		void SetCrossInfo(Liar::Cell** crossList, Liar::Uint& crossCout) { m_navMesh->GetCrossInfo(crossList, crossCout); };
 #endif // EditorMod
 
+#ifdef UNION_POLYGON
+		void UnionAll(bool = true);
+#endif // UNION_POLYGON
+
+
 	private:
 		void CalcBound();
-
-#ifdef UNION_POLYGON
-	private:
-		Liar::Uint LinkToPolygon(Liar::Map::Node**, Liar::Uint, Liar::Map::Node**, Liar::Uint);
-		int IntersectPoint(Liar::Map::Node**, Liar::Map::Node**, Liar::Uint&, Liar::Uint&, bool = true);
-		int GetNodeIndex(Liar::Map::Node** cv, int, const Liar::Vector2f&);
-		Liar::Uint UnionPolygons(const Liar::Polygon&, const Liar::Polygon&, bool = true);
-
-	private:
-		static Liar::Map::Node** m_nodes1;
-		static Liar::Uint m_numberNode1;
-		static Liar::Map::Node** m_nodes2;
-		static Liar::Uint m_numberNode2;
-
-		static void CreateNodes(Liar::Map const*, Liar::Uint, Liar::Uint, Liar::Map::Node**, Liar::Map::Node**, bool = true);
-		static Liar::Map::Node** ExpandNodes(Liar::Map const*, Liar::Uint, Liar::Map::Node**, Liar::Uint&);
-
-		bool CheckCross(Liar::NAVDTYPE r1[], Liar::NAVDTYPE r2[]);
-
-	public:
-		void UnionAll(bool = true);
-		static void DisposeNodes();
-#endif // UNION_POLYGON
-	};
-
-	class Map::Node :public Liar::MapSource
-	{
-	public:
-		Node(Liar::Map const*);
-		~Node();
-
-	public:
-		void Init(Liar::Map const*);
-		void Set(Liar::Uint, bool isInters, bool main);
-
-	public:
-		/** 坐标点索引 */
-		Liar::Uint v;
-		/** 是否是交点 */
-		bool i;
-		/** 是否已处理过 */
-		bool p;
-		/** 进点--false； 出点--true */
-		bool o;
-		/** 交点的双向引用 */
-		Node* other;
-		/** 点是否在主多边形中*/
-		bool isMain;
-		/** 多边形的下一个点 */
-		Node* next;
 	};
 }
 

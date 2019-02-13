@@ -33,7 +33,17 @@ namespace Liar
 
 	NavMesh::~NavMesh()
 	{
-		m_cells = nullptr;
+		if (m_cells)
+		{
+			for (Liar::Uint i = 0; i < m_numberCell; ++i)
+			{
+				m_cells[i]->~Cell();
+				free(m_cells[i]);
+				m_cells[i] = nullptr;
+			}
+			free(m_cells);
+			m_cells = nullptr;
+		}
 		m_openList->~Heap();
 		free(m_openList);
 		m_openList = nullptr;
@@ -59,6 +69,7 @@ namespace Liar
 		m_numberCell = 0;
 
 		m_openList = (Heap*)malloc(sizeof(Heap));
+		m_openList->Init();
 		m_closeList = nullptr;
 		m_closeCount = 0;
 

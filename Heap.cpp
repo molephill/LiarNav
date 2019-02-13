@@ -19,6 +19,13 @@ namespace Liar
 		}
 	}
 
+	void Heap::Init()
+	{
+		m_heap = nullptr;
+		m_numCells = 0;
+		m_curNum = 0;
+	}
+
 	void Heap::Set(Liar::Uint size)
 	{
 		if (m_numCells < size + 1)
