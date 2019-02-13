@@ -91,12 +91,6 @@ namespace Liar
 		Vector2f* interscetVector = (Vector2f*)malloc(sizeof(Vector2f));
 		interscetVector->Set(Liar::ZERO, Liar::ZERO);
 
-#ifdef EditorMod
-		const char* str = "findDT.txt";
-		std::ofstream outfile(str, std::ios::ate);
-		Liar::Uint logIndex = 0;
-#endif // EditorMod
-
 		do
 		{
 			idx = tmpLineCount - 1;
@@ -119,11 +113,6 @@ namespace Liar
 			Liar::Vector2f& pa = edge->GetPointA();
 			Liar::Vector2f& pb = edge->GetPointB();
 
-#ifdef EditorMod
-			outfile << logIndex++ << " (" << tmpLineCount << ")\n";
-#endif // EditorMod
-
-
 			lineV = BuildTrianges(pa, *p3, lineV, tmpLineCount, map, pointAIndex, p3Index);
 			lineV = BuildTrianges(*p3, pb, lineV, tmpLineCount, map, p3Index, pointBIndex);
 
@@ -139,10 +128,6 @@ namespace Liar
 		interscetVector->~Vector2f();
 		free(interscetVector);
 		interscetVector = nullptr;
-
-#ifdef EditorMod
-		outfile.close();
-#endif // EditorMod
 
 	}
 
