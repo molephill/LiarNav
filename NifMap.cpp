@@ -143,7 +143,6 @@ namespace Liar
 	Liar::Vector2f** NifMap::FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint& count)
 	{
 		Liar::Map* map = nullptr;
-
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
 		{
 			map = m_mapList[i];
@@ -192,7 +191,7 @@ namespace Liar
 	{
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
 		{
-			if (m_mapList[i]->InMap(v[0].GetX(), v[0].GetY(), true))
+			if (m_mapList[i]->InMap(v[0].GetX(), v[0].GetY()))
 			{
 				m_mapList[i]->AddPolygon(v, vecIndex);
 				return;
@@ -204,7 +203,7 @@ namespace Liar
 	{
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
 		{
-			if (m_mapList[i]->InMap(x, y, true))
+			if (m_mapList[i]->InMap(x, y))
 			{
 				return &(m_mapList[i]->AutoAddPolygon());
 			}
@@ -212,9 +211,18 @@ namespace Liar
 		return nullptr;
 	}
 
+	void NifMap::CalcAllMapBound()
+	{
+		for (Liar::Uint i = 0; i < m_mapcount; ++i)
+		{
+			m_mapList[i]->CalcBound();
+		}
+	}
+
 	int NifMap::BuildByList(ErlNifEnv* env, ERL_NIF_TERM wall, ERL_NIF_TERM block, bool isCW)
 	{
 		if(!ParseErlangTerm(env, wall)) return -1;
+		CalcAllMapBound();
 		ParseErlangTerm(env, block, false);
 		return BuildAll(isCW);
 	}
@@ -222,6 +230,7 @@ namespace Liar
 	int NifMap::BuildByList(ErlNifEnv* env, ERL_NIF_TERM Info, bool isCW)
 	{
 		if(!ParseErlangTerm(env, Info)) return -1;
+		CalcAllMapBound();
 		return Liar::Delaunay::Set(*(m_mapList[m_mapcount - 1]), isCW);
 	}
 

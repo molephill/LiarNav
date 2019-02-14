@@ -37,6 +37,11 @@ namespace Liar
 		void Set(const Liar::MapSource&);
 		Liar::Vector2f* GetVertex(Liar::Uint) const;
 		void Dispose();
+
+#if defined(DEBUG_NIF) || defined(EditorMod)
+		static void WriteLog(const char*, bool = true, const char* = "nav_log.txt");
+#endif // DEBUG_NIF
+
 	};
 }
 

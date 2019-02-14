@@ -182,6 +182,11 @@ namespace Liar
 			Liar::Polygon* polygon = map.GetPolygon(i);
 			if (polygon)
 			{
+
+#ifndef UNION_POLYGON
+				polygon->Rectangle();
+#endif // !UNION_POLYGON
+
 				map.CalcBound(*polygon); // calcBound
 				Liar::Uint numPoints = polygon->GetNumPoints();
 

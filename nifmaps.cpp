@@ -1,11 +1,6 @@
 
 #include "NifMap.h"
-#include<stdlib.h> 
-
-#ifdef DEBUG_NIF
-#include <fstream>
-#include <iostream>
-#endif
+#include<stdlib.h>
 
 static Liar::NifMap* maps;
 static int mapcount = 0;
@@ -25,25 +20,6 @@ static Liar::NifMap* GetMap(int bid)
 
 	return nullptr;
 }
-
-#ifdef DEBUG_NIF
-static void WriteLog(const char* log, bool add = true)
-{
-	const char* logPath = "nav_log.txt";
-	if (add)
-	{
-		std::ofstream out(logPath, std::ios::app);
-		out << log << std::endl;
-		out.close();
-	}
-	else
-	{
-		std::ofstream out(logPath);
-		out << log << std::endl;
-		out.close();
-	}
-}
-#endif
 
 static void DestoryMap(int bid)
 {
@@ -119,17 +95,8 @@ static ERL_NIF_TERM mapinfo(ErlNifEnv* env, ERL_NIF_TERM bidTerm, ERL_NIF_TERM w
 	try
 	{
 		int cellCount = 0;
-#ifdef DEBUG_NIF
-		char str[50];
-		sprintf_s(str, "bid:%d, block:%d", bid, blockTerm);
-		WriteLog(str);
-#endif // DEBUG_NIF
 		if (blockTerm) cellCount = map->BuildByList(env, wallTerm, blockTerm, isCW);
 		else cellCount = map->BuildByList(env, wallTerm, isCW);
-#ifdef DEBUG_NIF
-		sprintf_s(str, "cellcount:%d", cellCount);
-		WriteLog(str);
-#endif // DEBUG_NIF
 		if (cellCount <= 0)
 		{
 			if (cellCount == 0) map->DestoryLast();
@@ -183,6 +150,13 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 
 	Liar::NifMap* map = GetMap(bid);
 
+#ifdef DEBUG_NIF
+	Liar::MapSource::WriteLog("start_find_path", false);
+	char str[512];
+	sprintf_s(str, "bid:%d", bid);
+	Liar::MapSource::WriteLog(str);
+#endif // DEBUG_NIF
+
 	if (!map) return res;
 
 	Liar::NAVDTYPE startx = Liar::ZERO;
@@ -194,10 +168,18 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 	Liar::NAVDTYPE endy = Liar::ZERO;
 	if (!Liar::NifMap::ReadErlangCPType(env, argv[4], endy)) return res;
 
-	Liar::Uint count = 0;
+#ifdef DEBUG_NIF
+	sprintf_s(str, "sx:%f,sy:%f,ex:%f,ey:%f", startx, starty, endx, endy);
+	Liar::MapSource::WriteLog(str);
+#endif // DEBUG_NIF
 	try
 	{
+		Liar::Uint count = 0;
 		Liar::Vector2f** path = map->FindPath(startx, starty, endx, endy, count);
+#ifdef DEBUG_NIF
+		sprintf_s(str, "path_count:%d", count);
+		Liar::MapSource::WriteLog(str);
+#endif // DEBUG_NIF
 		if (count > 0)
 		{
 			int lastIndex = 0;

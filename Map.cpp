@@ -67,9 +67,8 @@ namespace Liar
 		return out;
 	}
 
-	bool Map::InMap(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool calc)
+	bool Map::InMap(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
 	{
-		if (calc) CalcBound();
 		if (x >= m_minX && x <= m_maxX && y >= m_minY && y <= m_maxY)
 		{
 			return true;
@@ -82,13 +81,17 @@ namespace Liar
 		return m_navMesh->CanWalk(x, y);
 	}
 
-	void Map::CalcBound()
+	void Map::CalcBound(Liar::Int index, bool force)
 	{
-		if (m_minX == 0.0 && m_minY == 0.0 && m_maxX == 0.0 && m_maxY == 0)
+		if (m_minX == Liar::ZERO && m_minY == Liar::ZERO && m_maxX == Liar::ZERO && m_maxY == Liar::ZERO)
 		{
-			for (Liar::Uint i = 0; i < m_numberPolygon; ++i)
+			if (index < 0)
 			{
-				Polygon& polygon = *(m_polygons[i]);
+				for (Liar::Uint i = 0; i < m_numberPolygon; ++i) CalcBound(i, force);
+			}
+			else
+			{
+				Polygon& polygon = *(m_polygons[index]);
 				NAVDTYPE* rect = polygon.Rectangle();
 				m_minX = m_minX < rect[0] ? m_minX : rect[0];
 				m_maxX = m_maxX > rect[1] ? m_maxX : rect[1];

@@ -38,8 +38,6 @@ namespace Liar
 		// navMesh
 		Liar::NavMesh* m_navMesh;
 
-		void CalcBound();
-
 	public:
 		void Init();
 		Liar::Vector2f* GetVertex(Liar::Uint) const;
@@ -60,9 +58,10 @@ namespace Liar
 		void AddNavMeshCell(Liar::Cell*);
 		Liar::Uint NavMeshLinkCells(bool = true);
 
-		bool InMap(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = false);
+		bool InMap(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		Liar::Vector2f** FindPath(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&, bool = true);
+		void CalcBound(Liar::Int = 0, bool = false);
 
 		Liar::NAVDTYPE GetMinX() const { return m_minX; };
 		Liar::NAVDTYPE GetMinY() const { return m_minY; };

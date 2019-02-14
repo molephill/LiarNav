@@ -165,7 +165,7 @@ namespace Liar
 			Liar::NAVDTYPE curY = tmp->GetY();
 
 			lx = curX < lx ? curX : lx;
-			rx = curX > lx ? curX : lx;
+			rx = curX > rx ? curX : rx;
 			ty = curY < ty ? curY : ty;
 			by = curY > by ? curY : by;
 		}

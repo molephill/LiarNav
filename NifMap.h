@@ -39,6 +39,7 @@ namespace Liar
 		void CheckAddPolygon(Liar::Vector2f*, int);
 		Liar::Polygon* CheckAutoAddPolygon(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int BuildMapByIndex(Liar::Uint, bool = true);
+		void CalcAllMapBound();
 
 	public:
 		static bool ReadErlangCPType(ErlNifEnv*, ERL_NIF_TERM, NAVDTYPE&);
