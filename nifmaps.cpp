@@ -119,8 +119,17 @@ static ERL_NIF_TERM mapinfo(ErlNifEnv* env, ERL_NIF_TERM bidTerm, ERL_NIF_TERM w
 	try
 	{
 		int cellCount = 0;
+#ifdef DEBUG_NIF
+		char str[50];
+		sprintf_s(str, "bid:%d, block:%d", bid, blockTerm);
+		WriteLog(str);
+#endif // DEBUG_NIF
 		if (blockTerm) cellCount = map->BuildByList(env, wallTerm, blockTerm, isCW);
 		else cellCount = map->BuildByList(env, wallTerm, isCW);
+#ifdef DEBUG_NIF
+		sprintf_s(str, "cellcount:%d", cellCount);
+		WriteLog(str);
+#endif // DEBUG_NIF
 		if (cellCount <= 0)
 		{
 			if (cellCount == 0) map->DestoryLast();
@@ -142,17 +151,12 @@ static ERL_NIF_TERM mapinfo(ErlNifEnv* env, ERL_NIF_TERM bidTerm, ERL_NIF_TERM w
 [x,y.... ’œ∞≠≤„]...
 ]
 */
-static ERL_NIF_TERM mapinfo(ErlNifEnv* env, ERL_NIF_TERM bidTerm, ERL_NIF_TERM blockTerm, ERL_NIF_TERM cwTerm)
-{
-	return mapinfo(env, bidTerm, blockTerm, 0, cwTerm);
-}
-
 static ERL_NIF_TERM buildmap(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
 	switch (Liar::NAV_VERSION)
 	{
 	case 1:
-		return mapinfo(env, argv[0], argv[1], argv[2]);
+		return mapinfo(env, argv[0], argv[1], 0, argv[2]);
 	case 2:
 		return mapinfo(env, argv[0], argv[1], argv[2], argv[3]);
 	default:

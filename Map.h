@@ -45,6 +45,7 @@ namespace Liar
 		Liar::Vector2f* GetVertex(Liar::Uint) const;
 		Liar::Uint AddPolygon(Liar::Vector2f*, Liar::Uint);
 		Liar::Polygon& AutoAddPolygon();
+		void DisposePolygon(Liar::Polygon*);
 		Liar::Uint AddVertex(const Liar::Vector2f&);
 		Liar::Uint AddVertex(Liar::NAVDTYPE, Liar::NAVDTYPE);
 

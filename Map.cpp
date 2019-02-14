@@ -137,6 +137,35 @@ namespace Liar
 		return *polygon;
 	}
 
+	void Map::DisposePolygon(Liar::Polygon* polygon)
+	{
+		if (polygon)
+		{
+			Liar::Uint i = 0;
+			Liar::Int findIndex = -1;
+			for (i = 0; i < m_numberPolygon; ++i)
+			{
+				if (m_polygons[i] == polygon)
+				{
+					m_polygons[i]->~Polygon();
+					free(m_polygons[i]);
+					m_polygons[i] = nullptr;
+					findIndex = i;
+				}
+			}
+
+			if (findIndex >= 0)
+			{
+				for (i = findIndex + 1; i < m_numberPolygon; ++i)
+				{
+					m_polygons[i - 1] = m_polygons[i];
+				}
+				--m_numberPolygon;
+			}
+			
+		}
+	}
+
 	Liar::Uint Map::AddVertex(const Liar::Vector2f& source)
 	{
 		return AddVertex(source.GetX(), source.GetY());

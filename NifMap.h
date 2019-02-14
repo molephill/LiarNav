@@ -35,7 +35,7 @@ namespace Liar
 #endif // EditorMod
 
 	private:
-		void ParseErlangTerm(ErlNifEnv*, ERL_NIF_TERM, bool = true);
+		bool ParseErlangTerm(ErlNifEnv*, ERL_NIF_TERM, bool = true);
 		void CheckAddPolygon(Liar::Vector2f*, int);
 		Liar::Polygon* CheckAutoAddPolygon(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int BuildMapByIndex(Liar::Uint, bool = true);

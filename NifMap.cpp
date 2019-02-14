@@ -59,11 +59,11 @@ namespace Liar
 		return false;
 	}
 
-	void NifMap::ParseErlangTerm(ErlNifEnv* env, ERL_NIF_TERM Info, bool isWall)
+	bool NifMap::ParseErlangTerm(ErlNifEnv* env, ERL_NIF_TERM Info, bool isWall)
 	{
 		unsigned int len = 0;
 		enif_get_list_length(env, Info, &len);
-		if (len <= 0) return;
+		if (len <= 0) return false;
 
 		ERL_NIF_TERM head, tail;
 		ERL_NIF_TERM subHead, subTail;
@@ -84,7 +84,11 @@ namespace Liar
 			{
 				if (enif_get_tuple(env, subHead, &arity, &termArray))
 				{
-					if (!NifMap::ReadErlangCPType(env, termArray[0], x) || !NifMap::ReadErlangCPType(env, termArray[1], y)) return;
+					if (!NifMap::ReadErlangCPType(env, termArray[0], x) || !NifMap::ReadErlangCPType(env, termArray[1], y)) 
+					{
+						map.DisposePolygon(polygon);
+						return false;
+					}
 
 					if (!isWall && !polygon) polygon = CheckAutoAddPolygon(x, y);
 
@@ -94,6 +98,11 @@ namespace Liar
 						polygon->AddPointIndex(pointIndex);
 					}
 				}
+				else
+				{
+					map.DisposePolygon(polygon);
+					return false;
+				}
 
 				head = subTail;
 			}
@@ -101,6 +110,7 @@ namespace Liar
 			Info = tail;
 		}
 
+		return true;
 	}
 
 	void NifMap::Set(Liar::Int bid)
@@ -204,14 +214,14 @@ namespace Liar
 
 	int NifMap::BuildByList(ErlNifEnv* env, ERL_NIF_TERM wall, ERL_NIF_TERM block, bool isCW)
 	{
-		ParseErlangTerm(env, wall);
+		if(!ParseErlangTerm(env, wall)) return -1;
 		ParseErlangTerm(env, block, false);
 		return BuildAll(isCW);
 	}
 
 	int NifMap::BuildByList(ErlNifEnv* env, ERL_NIF_TERM Info, bool isCW)
 	{
-		ParseErlangTerm(env, Info);
+		if(!ParseErlangTerm(env, Info)) return -1;
 		return Liar::Delaunay::Set(*(m_mapList[m_mapcount - 1]), isCW);
 	}
 
