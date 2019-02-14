@@ -1,7 +1,7 @@
 -module(nifmaps).
 
 -export([
-	init/0, hello/0, createmap/3, destory/1, findpath/5
+	init/0, createmap/3, destory/1, findpath/5
 	, buildmap/3, buildmap/4, can_walk/3
   , free/0
 	]).
