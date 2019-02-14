@@ -10,9 +10,11 @@ namespace Liar
 
 	NifMap::~NifMap()
 	{
+		Liar::Uint i = 0;
+
 		if (m_mapList)
 		{
-			for (Liar::Uint i = 0; i < m_mapcount; ++i)
+			for (i = 0; i < m_mapcount; ++i)
 			{
 				m_mapList[i]->~Map();
 				free(m_mapList[i]);
@@ -22,6 +24,21 @@ namespace Liar
 			m_mapList = nullptr;
 			m_mapcount = 0;
 		}
+
+#ifdef EditorMod
+		if (m_crossList)
+		{
+			for (i = 0; i < m_crossCount; ++i)
+			{
+				m_crossList[i]->~Cell();
+				free(m_crossList[i]);
+				m_crossList[i] = nullptr;
+			}
+			free(m_crossList);
+			m_crossList = nullptr;
+		}
+#endif // EditorMod
+
 	}
 
 	// from erlang to nav_type
@@ -91,6 +108,12 @@ namespace Liar
 		m_mapcount = 0;
 		m_bid = bid;
 		m_mapList = nullptr;
+
+#ifdef EditorMod
+		m_crossList = nullptr;
+		m_crossCount = 0;
+#endif // EditorMod
+
 	}
 
 	bool NifMap::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
@@ -187,7 +210,7 @@ namespace Liar
 	int NifMap::BuildByList(ErlNifEnv* env, ERL_NIF_TERM Info, bool isCW)
 	{
 		ParseErlangTerm(env, Info);
-		return BuildIndex(m_mapcount - 1, isCW);
+		return Liar::Delaunay::Set(*(m_mapList[m_mapcount - 1]), isCW);
 	}
 
 	int NifMap::BuildAll(bool cw)
@@ -207,7 +230,7 @@ namespace Liar
 		{
 			return 0;
 		}
-		return BuildIndex(index, cw);
+		return Liar::Delaunay::Set(*(m_mapList[index]), cw);
 	}
 
 	// 给场景加数据
@@ -216,26 +239,6 @@ namespace Liar
 		if (static_cast<Liar::Uint>(index) >= m_mapcount) return false;
 		m_mapList[index]->AddPolygon(v, count);
 		return true;
-	}
-
-	Liar::Int NifMap::BuildIndex(Liar::Uint index, bool cw)
-	{
-		if (!Liar::NifMap::m_delaunay)
-		{
-			Liar::NifMap::m_delaunay = (Liar::Delaunay*)malloc(sizeof(Liar::Delaunay));
-			Liar::NifMap::m_delaunay->Init();
-		}
-		return Liar::NifMap::m_delaunay->Set(*(m_mapList[index]), cw);
-	}
-
-	void NifMap::FreeDelaunay()
-	{
-		if (Liar::NifMap::m_delaunay)
-		{
-			Liar::NifMap::m_delaunay->~Delaunay();
-			free(Liar::NifMap::m_delaunay);
-			Liar::NifMap::m_delaunay = nullptr;
-		}
 	}
 
 #ifdef EditorMod
@@ -277,31 +280,12 @@ namespace Liar
 			return;
 		}
 
-		outfile << "[";
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
 		{
 			Liar::Map& mapInfo = *(m_mapList[i]);
-			Liar::Uint polygonCount = mapInfo.GetPolygonSize();
-			Liar::Polygon** polygonList = mapInfo.GetPolygons();
-			for (Liar::Uint j = 0; j < polygonCount; ++j)
-			{
-				outfile << "\n[";
-				Liar::Polygon& polygon = *(polygonList[j]);
-				Liar::Uint vector2fSize = polygon.GetNumPoints();
-				for (Liar::Uint k = 0; k < vector2fSize; ++k)
-				{
-					Liar::Vector2f* v = polygon.GetVertex(k);
-					if (k == vector2fSize - 1) outfile << "{" << v->GetX() << "," << v->GetY() << "}";
-					else outfile << "{" << v->GetX() << "," << v->GetY() << "},";
-				}
-				if (j == polygonCount - 1) outfile << "]";
-				else outfile << "],";
-			}
+			mapInfo.WriteErlang(outfile);
 		}
-		outfile << "]";
 		outfile.close();
 	}
 #endif
-
-	Liar::Delaunay* NifMap::m_delaunay = nullptr;
 }

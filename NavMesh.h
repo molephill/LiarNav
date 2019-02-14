@@ -105,6 +105,9 @@ namespace Liar
 		void DestoryTestCell();
 #endif // !ShareFind
 
+#if defined(DEBUG_NIF) || defined(EditorMod)
+		void WriteErlang(std::ofstream&);
+#endif
 
 	};
 }

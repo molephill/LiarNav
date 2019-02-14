@@ -29,24 +29,19 @@ namespace Liar
 		Liar::Map** m_mapList;
 		Liar::Uint m_mapcount;
 
-		static Liar::Delaunay* m_delaunay;
-
 #ifdef EditorMod
 		Liar::Cell** m_crossList;
 		Liar::Uint m_crossCount;
 #endif // EditorMod
-
 
 	private:
 		void ParseErlangTerm(ErlNifEnv*, ERL_NIF_TERM, bool = true);
 		void CheckAddPolygon(Liar::Vector2f*, int);
 		Liar::Polygon* CheckAutoAddPolygon(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int BuildMapByIndex(Liar::Uint, bool = true);
-		Liar::Int BuildIndex(Liar::Uint, bool = true);
 
 	public:
 		static bool ReadErlangCPType(ErlNifEnv*, ERL_NIF_TERM, NAVDTYPE&);
-		static void FreeDelaunay();
 
 		void Set(Liar::Int);
 		bool AddPologyMapByIndex(int, Liar::Vector2f*, Liar::Uint);

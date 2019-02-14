@@ -13,43 +13,40 @@ namespace Liar
 
 	WayPoint::~WayPoint()
 	{
-		if (m_position)
-		{
-			m_position->~Vector2f();
-			free(m_position);
-			m_position = nullptr;
-		}
+		m_position->~Vector2f();
+		free(m_position);
+		m_position = nullptr;
 
-		if (m_lineAPointA)
-		{
-			m_lineAPointA->~Vector2f();
-			free(m_lineAPointA);
-			m_lineAPointA = nullptr;
+		m_lineAPointA->~Vector2f();
+		free(m_lineAPointA);
+		m_lineAPointA = nullptr;
 
-			m_lineAPointB->~Vector2f();
-			free(m_lineAPointB);
-			m_lineAPointB = nullptr;
+		m_lineAPointB->~Vector2f();
+		free(m_lineAPointB);
+		m_lineAPointB = nullptr;
 
-			m_lineBPointA->~Vector2f();
-			free(m_lineBPointA);
-			m_lineBPointA = nullptr;
+		m_lineBPointA->~Vector2f();
+		free(m_lineBPointA);
+		m_lineBPointA = nullptr;
 
-			m_lineBPointB->~Vector2f();
-			free(m_lineBPointB);
-			m_lineBPointB = nullptr;
-		}
+		m_lineBPointB->~Vector2f();
+		free(m_lineBPointB);
+		m_lineBPointB = nullptr;
 	}
 
 	void WayPoint::Set(Liar::Cell* call, const Liar::Vector2f& vec)
 	{
-		if (!m_position) m_position = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-		if (!m_lineAPointA)
-		{
-			m_lineAPointA = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-			m_lineAPointB = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-			m_lineBPointA = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-			m_lineBPointB = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-		}
+		m_position = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+
+		m_lineAPointA = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		m_lineAPointB = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		m_lineBPointA = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		m_lineBPointB = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		m_lineAPointA->Set(Liar::ZERO, Liar::ZERO);
+		m_lineAPointB->Set(Liar::ZERO, Liar::ZERO);
+		m_lineBPointA->Set(Liar::ZERO, Liar::ZERO);
+		m_lineBPointB->Set(Liar::ZERO, Liar::ZERO);
+
 		m_caller = call;
 		m_position->Set(vec);
 	}
@@ -89,9 +86,9 @@ namespace Liar
 		Liar::Cell* caller = m_caller;
 		Liar::Cell* lastCell = caller;
 
-		Liar::Line2d& outSide = caller->GetSide(caller->arrivalWall);	//路径线在网格中的穿出边
-		Liar::Vector2f& lastPtA = outSide.GetPointA();
-		Liar::Vector2f& lastPtB = outSide.GetPointB();
+		Liar::Line2d* outSide = caller->GetSide(caller->arrivalWall);	//路径线在网格中的穿出边
+		Liar::Vector2f& lastPtA = outSide->GetPointA();
+		Liar::Vector2f& lastPtB = outSide->GetPointB();
 
 		Liar::NAVDTYPE lastPtAX = lastPtA.GetX();
 		Liar::NAVDTYPE lastPtAY = lastPtA.GetY();
@@ -135,8 +132,8 @@ namespace Liar
 			}
 			else
 			{
-				const Liar::Vector2f& pa = outSide.GetPointA();
-				const Liar::Vector2f& pb = outSide.GetPointB();
+				const Liar::Vector2f& pa = outSide->GetPointA();
+				const Liar::Vector2f& pb = outSide->GetPointB();
 				testPtAX = pa.GetX();
 				testPtAY = pa.GetY();
 				testPtBX = pb.GetX();
@@ -154,7 +151,7 @@ namespace Liar
 				if (closeB > 0)
 				{
 					m_caller = cellPath[closeB];
-					m_position = closeBPoint;
+					m_position->Set(*closeBPoint);
 				}
 				else
 				{

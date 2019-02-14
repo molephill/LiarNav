@@ -206,6 +206,8 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 				res = enif_make_list_cell(env, enif_make_double(env, path[i]->GetY()), res);
 				res = enif_make_list_cell(env, enif_make_double(env, path[i]->GetX()), res);
 				path[i]->~Vector2f();
+				free(path[i]);
+				path[i] = nullptr;
 			}
 			free(path);
 			path = nullptr;
@@ -243,9 +245,9 @@ static ERL_NIF_TERM can_walk(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 	}
 }
 
-static ERL_NIF_TERM free_delaunay(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+static ERL_NIF_TERM free(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-	Liar::NifMap::FreeDelaunay();
+	Liar::Delaunay::Dispose();
 	return enif_make_int(env, 0);
 }
 
@@ -256,7 +258,7 @@ static ErlNifFunc nif_funcs[] = {
 	{ "destory", 1, destory },
 	{ "findpath", 5, findpath },
 	{ "can_walk", 3, can_walk },
-	{ "free_delaunay", 0, free_delaunay }
+	{ "free", 0, free }
 };
 
 ERL_NIF_INIT(nifmaps, nif_funcs, nullptr, nullptr, nullptr, nullptr)

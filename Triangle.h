@@ -32,8 +32,6 @@ namespace Liar
 		Liar::Vector2f* m_center;
 		Liar::Line2d** m_sides;
 
-		bool m_centerCalculated;
-
 	public:
 		void Set(Liar::Map const*);
 		bool Set(Liar::Uint, Liar::Uint, Liar::Uint);
@@ -45,7 +43,7 @@ namespace Liar
 
 		bool IsSide(const Liar::Vector2f&, const Liar::Vector2f&);
 		
-		Liar::Line2d& GetSide(Liar::Uint) const;
+		Liar::Line2d* GetSide(Liar::Uint) const;
 
 		Liar::Vector2f& GetPointA() const;
 		Liar::Vector2f& GetPointB() const;
@@ -57,7 +55,7 @@ namespace Liar
 
 
 	protected:
-		bool CalcInit();
+		bool CalcSides();
 	};
 }
 

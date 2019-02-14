@@ -9,7 +9,7 @@ namespace Liar
 		isOpen(false),parent(nullptr), arrivalWall(-1), checkLinkCount(0),
 		m_wallDistance((Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE)*3))
 	{
-		CalcInit();
+		CalcSides();
 	}
 
 
@@ -28,19 +28,17 @@ namespace Liar
 		m_links = (Liar::Int*)malloc(sizeof(Liar::Int) * 3);
 		m_links[0] = m_links[1] = m_links[2] = -1;
 		m_wallDistance = (Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE) * 3);
-		m_index = 0;
+		m_wallDistance[0] = m_wallDistance[1] = m_wallDistance[2] = Liar::ZERO;
+		m_index = sessionId = arrivalWall = checkLinkCount = 0;
+		parent = nullptr;
+		isOpen = false;
 		f = h = Liar::ZERO;
 
-		if (a != m_pointIndexA || b != m_pointIndexB || c != m_pointIndexC)
-		{
-			m_pointIndexA = a;
-			m_pointIndexB = b;
-			m_pointIndexC = c;
-			m_centerCalculated = false;
-			CalcInit();
-			return true;
-		}
-		return false;
+		m_pointIndexA = a;
+		m_pointIndexB = b;
+		m_pointIndexC = c;
+		CalcSides();
+		return true;
 	}
 
 	void Cell::Set(const Liar::Cell& source)
@@ -53,6 +51,7 @@ namespace Liar
 		memcpy(m_links, source.m_links, blockSize);
 
 		blockSize = sizeof(Liar::NAVDTYPE) * 3;
+		m_wallDistance = (Liar::NAVDTYPE*)malloc(blockSize);
 		memcpy(m_wallDistance, source.m_wallDistance, blockSize);
 
 		m_index = source.m_index;
@@ -75,9 +74,9 @@ namespace Liar
 		return m_index == source.m_index;
 	}
 
-	bool Cell::CalcInit()
+	bool Cell::CalcSides()
 	{
-		bool calc = Liar::Triangle::CalcInit();
+		bool calc = Liar::Triangle::CalcSides();
 		if (calc)
 		{
 			Liar::Vector2f& pointA = GetPointA();
@@ -136,17 +135,17 @@ namespace Liar
 		Liar::Vector2f& pointB = GetPointB();
 		Liar::Vector2f& pointC = GetPointC();
 
-		if (GetLink(TriangleSide::SIDE_AB) == -1 && cellB.RequestList(pointA, pointB, *this))
+		if (GetLink(Liar::TriangleSide::SIDE_AB) == -1 && cellB.RequestList(pointA, pointB, *this))
 		{
-			SetLink(TriangleSide::SIDE_AB, cellB);
+			SetLink(Liar::TriangleSide::SIDE_AB, cellB);
 		}
-		else if (GetLink(TriangleSide::SIDE_BC) == -1 && cellB.RequestList(pointB, pointC, *this))
+		else if (GetLink(Liar::TriangleSide::SIDE_BC) == -1 && cellB.RequestList(pointB, pointC, *this))
 		{
-			SetLink(TriangleSide::SIDE_BC, cellB);
+			SetLink(Liar::TriangleSide::SIDE_BC, cellB);
 		}
-		else if (GetLink(TriangleSide::SIDE_CA) == -1 && cellB.RequestList(pointC, pointA, *this))
+		else if (GetLink(Liar::TriangleSide::SIDE_CA) == -1 && cellB.RequestList(pointC, pointA, *this))
 		{
-			SetLink(TriangleSide::SIDE_CA, cellB);
+			SetLink(Liar::TriangleSide::SIDE_CA, cellB);
 		}
 	}
 
@@ -171,38 +170,38 @@ namespace Liar
 
 		if (pointA.Equals(paX, paY))
 		{
-			if (pointB.Equals(pbX, pbY, EPSILON))
+			if (pointB.Equals(pbX, pbY))
 			{
 				SetLink(TriangleSide::SIDE_AB, caller);
 				return true;
 			}
-			else if (pointC.Equals(pbX, pbY, EPSILON))
+			else if (pointC.Equals(pbX, pbY))
 			{
 				SetLink(TriangleSide::SIDE_CA, caller);
 				return true;
 			}
 		}
-		else if (pointB.Equals(paX, paY, EPSILON))
+		else if (pointB.Equals(paX, paY))
 		{
-			if (pointA.Equals(pbX, pbY, EPSILON))
+			if (pointA.Equals(pbX, pbY))
 			{
 				SetLink(TriangleSide::SIDE_AB, caller);
 				return true;
 			}
-			else if (pointC.Equals(pbX, pbY, EPSILON))
+			else if (pointC.Equals(pbX, pbY))
 			{
 				SetLink(TriangleSide::SIDE_BC, caller);
 				return true;
 			}
 		}
-		else if (pointC.Equals(paX, paY, EPSILON))
+		else if (pointC.Equals(paX, paY))
 		{
-			if (pointA.Equals(pbX, pbY, EPSILON))
+			if (pointA.Equals(pbX, pbY))
 			{
 				SetLink(TriangleSide::SIDE_CA, caller);
 				return true;
 			}
-			else if (pointB.Equals(pbX, pbY, EPSILON))
+			else if (pointB.Equals(pbX, pbY))
 			{
 				SetLink(TriangleSide::SIDE_BC, caller);
 				return true;
@@ -219,12 +218,9 @@ namespace Liar
 	* @param side
 	* @param caller
 	*/
-	void Cell::SetLink(Liar::TriangleSide side, const Cell& caller)
+	void Cell::SetLink(Liar::TriangleSide side, const Liar::Cell& caller)
 	{
-		if (m_links[side] != caller.m_index)
-		{
-			m_links[side] = caller.m_index;
-		}
+		m_links[side] = caller.m_index;
 	}
 
 	/**
@@ -297,4 +293,18 @@ namespace Liar
 
 		return -1;
 	}
+
+#if defined(DEBUG_NIF) || defined(EditorMod)
+	void Cell::WriteErlang(std::ofstream& outfile)
+	{
+		Liar::Vector2f& pa = GetPointA();
+		Liar::Vector2f& pb = GetPointB();
+		Liar::Vector2f& pc = GetPointC();
+
+		outfile << "index:" << m_index << " ";
+		outfile << "A:{" << pa.GetX() << "," << pa.GetY() << "} ";
+		outfile << "B:{" << pb.GetX() << "," << pb.GetY() << "} ";
+		outfile << "C:{" << pc.GetX() << "," << pc.GetY() << "} ";
+	}
+#endif
 }

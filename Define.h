@@ -4,7 +4,7 @@
 namespace Liar
 {
 //#define _DEBUG 1
-//#define ShareFind 1
+#define ShareFind 1
 #define EditorMod 1
 #define FindNearest 1
 #define OutFind 1
@@ -12,6 +12,7 @@ namespace Liar
 #define PASS_FIRST 1
 #define FIND_IN_SAME_MAP 1
 #define UNION_POLYGON 1
+#define UNIQUE_POINT 1
 
 	// data type
 	typedef float NAVDTYPE;

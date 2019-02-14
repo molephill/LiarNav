@@ -2,14 +2,7 @@
 
 namespace Liar
 {
-	Delaunay::Delaunay():
-		m_line2ds(nullptr), m_totalLines(0),
-		m_curNumLines(0)
-	{
-	}
-
-
-	Delaunay::~Delaunay()
+	void Delaunay::Dispose()
 	{
 		Liar::Uint i = 0;
 
@@ -25,17 +18,67 @@ namespace Liar
 			m_line2ds = nullptr;
 			m_totalLines = 0;
 		}
-	}
 
-	void Delaunay::Init()
-	{
-		m_line2ds = nullptr;
-		m_totalLines = 0;
-		m_curNumLines = 0;
+		if (m_circle)
+		{
+			m_circle->~Circle();
+			free(m_circle);
+			m_circle = nullptr;
+		}
+
+		if (m_tmpRange)
+		{
+			free(m_tmpRange);
+			m_tmpRange = nullptr;
+		}
+
+		if (m_findDTPoints)
+		{
+			free(m_findDTPoints);
+			m_findDTPoints = nullptr;
+		}
+
+#ifdef UNION_POLYGON
+		if (m_nodes1)
+		{
+			for (i = 0; i < m_numberNode1; ++i)
+			{
+				m_nodes1[i]->~Node();
+				m_nodes1[i] = nullptr;
+			}
+			free(m_nodes1);
+			m_nodes1 = nullptr;
+			m_numberNode1 = 0;
+		}
+
+		if (m_nodes2)
+		{
+			for (i = 0; i < m_numberNode2; ++i)
+			{
+				m_nodes2[i]->~Node();
+				m_nodes2[i] = nullptr;
+			}
+
+			free(m_nodes2);
+			m_nodes2 = nullptr;
+			m_numberNode2 = 0;
+		}
+#endif // UNION_POLYGON
+
 	}
 
 	Liar::Uint Delaunay::Set(Liar::Map& map, bool isCW, Liar::Uint boxIndex)
 	{
+		// ================== init ====================
+		if (!m_circle)
+		{
+			m_circle = (Liar::Delaunay::Circle*)malloc(sizeof(Liar::Delaunay::Circle));
+			m_circle->Init();
+		}
+
+		if (!m_tmpRange) m_tmpRange = (Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE) * 4);
+		// ============================================
+
 		m_curNumLines = 0;
 
 #ifdef UNION_POLYGON
@@ -106,7 +149,8 @@ namespace Liar
 			Liar::Uint pointBIndex = edge->GetPointBIndex();
 
 			Liar::Cell* addTri = (Liar::Cell*)malloc(sizeof(Liar::Cell));
-			addTri->Set(&map, pointAIndex, pointBIndex, p3Index);
+			if(isCW) addTri->Set(&map, pointAIndex, pointBIndex, p3Index);
+			else addTri->Set(&map, p3Index, pointBIndex, pointAIndex);
 			map.AddNavMeshCell(addTri);
 
 			Liar::Vector2f* p3 = map.GetVertex(p3Index);
@@ -144,6 +188,11 @@ namespace Liar
 
 				Liar::Uint pre = m_curNumLines;
 				m_curNumLines += numPoints;
+
+				Liar::Uint resetNum = m_curNumLines > m_totalLines ? m_totalLines : m_curNumLines;
+				// reset old data
+				for (Liar::Uint resetMap = pre; resetMap < resetNum; ++resetMap) m_line2ds[resetMap]->Set(&map);
+
 				if (m_curNumLines > m_totalLines)
 				{
 					Liar::Uint preTotal = m_totalLines;
@@ -219,8 +268,7 @@ namespace Liar
 
 	Liar::Int Delaunay::FindDT(Liar::Map& map, const Liar::Line2d& line, Liar::Vector2f& interscetVector, bool isCW)
 	{
-		Liar::Uint* allPoint = nullptr;
-		int allPointCount = 0;
+		Liar::Uint allPointCount = 0;
 
 		Liar::Uint numPoints = map.GetNumPoints();
 		size_t blockSize = 0;
@@ -230,10 +278,14 @@ namespace Liar
 			if (IsVisiblePointOfLine(*it, line, interscetVector, isCW))
 			{
 				++allPointCount;
-				blockSize = sizeof(Liar::Uint)*allPointCount;
-				if (allPoint) allPoint = (Liar::Uint*)realloc(allPoint, blockSize);
-				else allPoint = (Liar::Uint*)malloc(blockSize);
-				allPoint[allPointCount - 1] = i;
+				if (allPointCount >= m_numFindDTPoints)
+				{
+					blockSize = sizeof(Liar::Uint)*allPointCount;
+					if (m_findDTPoints) m_findDTPoints = (Liar::Uint*)realloc(m_findDTPoints, blockSize);
+					else m_findDTPoints = (Liar::Uint*)malloc(blockSize);
+					m_numFindDTPoints = allPointCount;
+				}
+				m_findDTPoints[allPointCount - 1] = i;
 			}
 		}
 
@@ -242,32 +294,29 @@ namespace Liar
 		Liar::Vector2f& p1 = line.GetPointA();
 		Liar::Vector2f& p2 = line.GetPointB();
 
-		Liar::Uint p3Index = allPoint[0];
+		Liar::Uint p3Index = m_findDTPoints[0];
 		Liar::Vector2f* p3 = map.GetVertex(p3Index);
 
 		bool loopSign = false;
-		Liar::NAVDTYPE* fv = (Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE) * 4);
-		Liar::Delaunay::Circle* cir = (Delaunay::Circle*)malloc(sizeof(Delaunay::Circle));
-		cir->Init();
 		do
 		{
 			loopSign = false;
-			CircumCircle(p1, p2, *p3, *cir);
-			CircleBounds(*cir, fv);
+			CircumCircle(p1, p2, *p3, *m_circle);
+			CircleBounds(*m_circle, m_tmpRange);
 
 			NAVDTYPE angle132 = abs(LineAngle(p1, *p3, p2));
-			for (int i = 0; i < allPointCount; ++i)
+			for (Liar::Uint i = 0; i < allPointCount; ++i)
 			{
-				Liar::Uint tmpP3Index = allPoint[i];
+				Liar::Uint tmpP3Index = m_findDTPoints[i];
 				Liar::Vector2f* vec = map.GetVertex(tmpP3Index);
 				if (vec->Equals(p1) || vec->Equals(p2) || vec->Equals(*p3)) continue;
 
 				Liar::NAVDTYPE x = vec->GetX();
 				Liar::NAVDTYPE y = vec->GetY();
-				Liar::NAVDTYPE minx = fv[0];
-				Liar::NAVDTYPE maxx = fv[2];
-				Liar::NAVDTYPE miny = fv[1];
-				Liar::NAVDTYPE maxy = fv[3];
+				Liar::NAVDTYPE minx = m_tmpRange[0];
+				Liar::NAVDTYPE maxx = m_tmpRange[2];
+				Liar::NAVDTYPE miny = m_tmpRange[1];
+				Liar::NAVDTYPE maxy = m_tmpRange[3];
 
 
 				if (x < minx || x > maxx || y < miny || y > maxy) continue;
@@ -283,14 +332,6 @@ namespace Liar
 				}
 			}
 		} while (loopSign);
-
-		cir->~Circle();
-		free(cir);
-		free(allPoint);
-		free(fv);
-		fv = nullptr;
-		cir = nullptr;
-		allPoint = nullptr;
 
 		return p3Index;
 	}
@@ -352,7 +393,6 @@ namespace Liar
 		Liar::NAVDTYPE otherPointBX = otherPointB.GetX();
 		Liar::NAVDTYPE ohterPointBY = otherPointB.GetY();
 
-
 		Liar::NAVDTYPE denom =
 			(ohterPointBY - otherPointAY)*(pointBX - pointAX)
 			-
@@ -369,14 +409,8 @@ namespace Liar
 
 		if (denom == 0.0)
 		{
-			if (u0 == 0.0 && u1 == 0.0)
-			{
-				return Liar::LineClassification::COLLINEAR;
-			}
-			else
-			{
-				return Liar::LineClassification::PARALELL;
-			}
+			if (u0 == 0.0 && u1 == 0.0) return Liar::LineClassification::COLLINEAR;
+			else return Liar::LineClassification::PARALELL;
 		}
 		else
 		{
@@ -528,6 +562,13 @@ namespace Liar
 		return -1;
 	}
 
+	Liar::Line2d** Liar::Delaunay::m_line2ds = nullptr;
+	Liar::Uint Liar::Delaunay::m_totalLines = 0;
+	Liar::Uint Liar::Delaunay::m_curNumLines = 0;
+	Liar::Delaunay::Circle* Liar::Delaunay::m_circle = nullptr;
+	Liar::NAVDTYPE* Liar::Delaunay::m_tmpRange = nullptr;
+	Liar::Uint* Liar::Delaunay::m_findDTPoints = nullptr;
+	Liar::Uint Liar::Delaunay::m_numFindDTPoints = 0;
 #ifdef UNION_POLYGON
 	void Delaunay::ExpandNodes(Liar::Uint type, Liar::Uint num)
 	{
@@ -799,35 +840,6 @@ namespace Liar
 			if (vec->Equals(Node)) return i;
 		}
 		return -1;
-	}
-
-	void Delaunay::DisposeNodes()
-	{
-		Liar::Uint i = 0;
-		if (m_nodes1)
-		{
-			for (i = 0; i < m_numberNode1; ++i)
-			{
-				m_nodes1[i]->~Node();
-				m_nodes1[i] = nullptr;
-			}
-			free(m_nodes1);
-			m_nodes1 = nullptr;
-			m_numberNode1 = 0;
-		}
-
-		if (m_nodes2)
-		{
-			for (i = 0; i < m_numberNode2; ++i)
-			{
-				m_nodes2[i]->~Node();
-				m_nodes2[i] = nullptr;
-			}
-
-			free(m_nodes2);
-			m_nodes2 = nullptr;
-			m_numberNode2 = 0;
-		}
 	}
 
 	bool Delaunay::CheckCross(Liar::NAVDTYPE r1[], Liar::NAVDTYPE r2[])

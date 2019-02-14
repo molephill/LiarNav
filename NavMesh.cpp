@@ -116,6 +116,21 @@ namespace Liar
 	// linkCells
 	Liar::Uint NavMesh::LinkCells(bool isCW)
 	{
+
+		if (!isCW)
+		{
+			Liar::Uint i = 0;
+			Liar::Uint j = m_numberCell - 1;
+			for (i = 0, j = m_numberCell - 1; i <= m_numberCell / 2 - 1; ++i, --j)
+			{
+				Liar::Cell* tmpCell = m_cells[i];
+				m_cells[j]->SetIndex(i);
+				tmpCell->SetIndex(j);
+				m_cells[i] = m_cells[j];
+				m_cells[j] = tmpCell;
+			}
+		}
+
 		for (Liar::Uint i = 0; i < m_numberCell; ++i)
 		{
 			for (Liar::Uint j = 0; j < m_numberCell; ++j)
@@ -166,7 +181,10 @@ namespace Liar
 #ifdef OutFind
 		if (!startCell)
 		{
-			Liar::Vector2f** out = (Liar::Vector2f**)malloc(sizeof(Vector2f*) * 2);
+			outLen = 2;
+			Liar::Vector2f** out = (Liar::Vector2f**)malloc(sizeof(Liar::Vector2f*) * 2);
+			out[0] = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+			out[1] = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 			out[0]->Set(startX, startY);
 			out[1]->Set(endX, endY);
 			return out;
@@ -177,6 +195,8 @@ namespace Liar
 		{
 			outLen = 2;
 			Liar::Vector2f** out = (Liar::Vector2f**)malloc(sizeof(Liar::Vector2f*)*outLen);
+			out[0] = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+			out[1] = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 			out[0]->Set(startX, startY);
 			out[1]->Set(endX, endY);
 			return out;
@@ -348,7 +368,7 @@ namespace Liar
 		if (cellPathSize > 0)
 		{
 			//开始点
-			pathArr = AddPathPoint(nullptr, startX, startY, outLen);
+			pathArr = AddPathPoint(pathArr, startX, startY, outLen);
 			//起点与终点在同一三角形中
 			if (cellPathSize == 1)
 			{
@@ -426,7 +446,7 @@ namespace Liar
 			Liar::Vector2f* checkPos = path[i];
 			Liar::Cell* checkCell = m_nearstCells[i];
 
-			if (startCell->GetIndex() == checkCell->GetIndex())
+			if(startCell->Equals(*checkCell))
 			{
 				continue;
 			}
@@ -465,6 +485,7 @@ namespace Liar
 			for (i = setStartIndex; i < static_cast<Liar::Uint>(revertIndex); ++i)
 			{
 				path[i]->~Vector2f();
+				free(path[i]);
 				m_nearstCells[i]->checkLinkCount = 0;
 				m_nearstCells[i] = nullptr;
 			}
@@ -543,7 +564,6 @@ namespace Liar
 		Liar::Vector2f* addPoint = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 		addPoint->Set(x, y);
 		path[len - 1] = addPoint;
-
 		return path;
 	}
 
@@ -562,11 +582,14 @@ namespace Liar
 		for (Liar::Uint i = 0; i < m_numberCell; ++i)
 		{
 			Liar::Cell* it = m_cells[i];
+			if (it->IsPointIn(x, y, rw))
+			{
 #ifdef ShareFind
-			if (it->IsPointIn(x, y, rw)) return it;
+				return it;
 #else
-			if (it->IsPointIn(x, y, rw)) return AddTestCell(it);
-#endif // ShareFind
+				return AddTestCell(it);
+#endif
+			}
 		}
 		return nullptr;
 	}
@@ -714,9 +737,9 @@ namespace Liar
 		int crossCount = 0;
 		for (int j = 0; j < 3; ++j)
 		{
-			Liar::Line2d& testline = sourceAdjacentTmp.GetSide(j);
-			Liar::Vector2f& pa = testline.GetPointA();
-			Liar::Vector2f& pb = testline.GetPointB();
+			Liar::Line2d* testline = sourceAdjacentTmp.GetSide(j);
+			Liar::Vector2f& pa = testline->GetPointA();
+			Liar::Vector2f& pb = testline->GetPointB();
 			int intersect1 = LineIntersectSide(endX, endY, startX, startY, pa, pb);
 			int intersect2 = LineIntersectSide(pa, pb, endX, endY, startX, startY);
 			int intersect = intersect1 < intersect2 ? intersect1 : intersect2;
@@ -897,6 +920,16 @@ namespace Liar
 	}
 #endif // !ShareFind
 
+#if defined(DEBUG_NIF) || defined(EditorMod)
+	void NavMesh::WriteErlang(std::ofstream& outfile)
+	{
+		for (Liar::Uint i = 0; i < m_numberCell; ++i)
+		{
+			outfile << "\n";
+			m_cells[i]->WriteErlang(outfile);
+		}
+	}
+#endif
 
 	int NavMesh::PATHSESSIONID = 0;
 }

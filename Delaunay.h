@@ -23,41 +23,42 @@ namespace Liar
 		class Circle;
 		class Node;
 
-	public:
-		Delaunay();
-		~Delaunay();
-
 	private:
-		Liar::Line2d** m_line2ds;
-		Liar::Uint m_totalLines;
-		Liar::Uint m_curNumLines;
+		static Liar::Line2d** m_line2ds;
+		static Liar::Uint m_totalLines;
+		static Liar::Uint m_curNumLines;
+		static Liar::Delaunay::Circle* m_circle;
+		static Liar::NAVDTYPE* m_tmpRange;
+		// findDT
+		static Liar::Uint* m_findDTPoints;
+		static Liar::Uint m_numFindDTPoints;
 
 	public:
-		void Init();
-		Liar::Uint Set(Liar::Map&, bool = true, Liar::Uint = 0);
+		static Liar::Uint Set(Liar::Map&, bool = true, Liar::Uint = 0);
+		static void Dispose();
 
 		static Liar::LineClassification Intersection(const Liar::Line2d&, const Liar::Line2d&, Liar::Vector2f*);
 		static Liar::LineClassification Intersection(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Line2d&, Liar::Vector2f*);
 		static Liar::LineClassification Intersection(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, Liar::Vector2f*);
 
 	private:
-		void BuildEdges(Liar::Map&);
-		void BuildTrianges(Liar::Map&, bool = true, Liar::Uint = 0);
-		Liar::Line2d** BuildTrianges(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Line2d**, Liar::Int&, Liar::Map&, Liar::Uint, Liar::Uint);
-		Liar::Line2d& GetBoundEdage(Liar::Map&, bool = true, Liar::Uint = 0);
+		static void BuildEdges(Liar::Map&);
+		static void BuildTrianges(Liar::Map&, bool = true, Liar::Uint = 0);
+		static Liar::Line2d** BuildTrianges(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Line2d**, Liar::Int&, Liar::Map&, Liar::Uint, Liar::Uint);
+		static Liar::Line2d& GetBoundEdage(Liar::Map&, bool = true, Liar::Uint = 0);
 
-		Liar::Int FindDT(Liar::Map&, const Liar::Line2d&, Liar::Vector2f&, bool = true);
+		static Liar::Int FindDT(Liar::Map&, const Liar::Line2d&, Liar::Vector2f&, bool = true);
 
-		bool IsVisiblePointOfLine(const Vector2f&, const Line2d&, Liar::Vector2f&, bool = true);
-		bool IsVisibleIn2Point(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Vector2f&);
+		static bool IsVisiblePointOfLine(const Vector2f&, const Line2d&, Liar::Vector2f&, bool = true);
+		static bool IsVisibleIn2Point(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Vector2f&);
 
-		void CircumCircle(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, Liar::Delaunay::Circle& cir);
-		void CircleBounds(const Liar::Delaunay::Circle&, Liar::NAVDTYPE*);
+		static void CircumCircle(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, Liar::Delaunay::Circle& cir);
+		static void CircleBounds(const Liar::Delaunay::Circle&, Liar::NAVDTYPE*);
 
-		Liar::NAVDTYPE LineAngle(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&);
+		static Liar::NAVDTYPE LineAngle(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&);
 
-		Liar::Line2d** RemovePosLine(Liar::Line2d** lv, int&, int pos);
-		Liar::Int FindLinePos(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Line2d**, Liar::Uint);
+		static Liar::Line2d** RemovePosLine(Liar::Line2d** lv, int&, int pos);
+		static Liar::Int FindLinePos(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Line2d**, Liar::Uint);
 
 #ifdef UNION_POLYGON
 	private:
@@ -79,7 +80,6 @@ namespace Liar
 
 	public:
 		static Liar::Uint UnionPolygons(Liar::Map&, const Liar::Polygon&, const Liar::Polygon&, bool = true);
-		static void DisposeNodes();
 #endif // UNION_POLYGON
 	};
 

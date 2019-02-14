@@ -38,6 +38,8 @@ namespace Liar
 		// navMesh
 		Liar::NavMesh* m_navMesh;
 
+		void CalcBound();
+
 	public:
 		void Init();
 		Liar::Vector2f* GetVertex(Liar::Uint) const;
@@ -78,9 +80,11 @@ namespace Liar
 		void UnionAll(bool = true);
 #endif // UNION_POLYGON
 
+#if defined(DEBUG_NIF) || defined(EditorMod)
+		void WriteErlang(std::ofstream&);
+#endif // DEBUG_NIF
 
-	private:
-		void CalcBound();
+
 	};
 }
 

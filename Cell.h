@@ -52,8 +52,12 @@ namespace Liar
 		Liar::Int GetIndex() const { return m_index; };
 		bool Equals(const Liar::Cell&);
 
+#if defined(DEBUG_NIF) || defined(EditorMod)
+		void WriteErlang(std::ofstream&);
+#endif
+
 	protected:
-		bool CalcInit();
+		bool CalcSides();
 
 	private:
 		bool RequestList(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Cell&);

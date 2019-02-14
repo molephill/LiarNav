@@ -144,10 +144,13 @@ namespace Liar
 
 	Liar::Uint Map::AddVertex(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
 	{
+
+#ifdef UNIQUE_POINT
 		for (Liar::Uint i = 0; i < m_numberVertex; ++i)
 		{
 			if (m_vertexs[i]->Equals(x, y)) return i;
 		}
+#endif // UNIQUE_POINT
 
 		m_numberVertex++;
 		size_t blockSize = sizeof(Liar::Vector2f*)*m_numberVertex;
@@ -194,8 +197,7 @@ namespace Liar
 
 	Liar::Uint Map::NavMeshLinkCells(bool isCW)
 	{
-		if (m_navMesh) return m_navMesh->LinkCells(isCW);
-		else return 0;
+		return m_navMesh->LinkCells(isCW);
 	}
 
 #ifdef UNION_POLYGON
@@ -257,4 +259,26 @@ namespace Liar
 		}
 	}
 #endif // UNION_POLYGON
+
+#if defined(DEBUG_NIF) || defined(EditorMod)
+	void Map::WriteErlang(std::ofstream& outfile)
+	{
+		for (Liar::Uint j = 0; j < m_numberPolygon; ++j)
+		{
+			outfile << "\n[";
+			Liar::Polygon& polygon = *(m_polygons[j]);
+			Liar::Uint vector2fSize = polygon.GetNumPoints();
+			for (Liar::Uint k = 0; k < vector2fSize; ++k)
+			{
+				Liar::Uint pointIndex = polygon.GetPointIndex(k);
+				Liar::Vector2f* v = polygon.GetVertex(pointIndex);
+				if (k == vector2fSize - 1) outfile << "{" << v->GetX() << "," << v->GetY() << "}";
+				else outfile << "{" << v->GetX() << "," << v->GetY() << "},";
+			}
+			if (j == m_numberPolygon - 1) outfile << "]";
+			else outfile << "],";
+		}
+		m_navMesh->WriteErlang(outfile);
+	}
+#endif
 }
