@@ -4,7 +4,7 @@ namespace Liar
 {
 #ifdef ShareFind
 #ifdef FindNearest
-	NavMesh::NavMesh():
+	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
 		m_nearstCells(nullptr), m_nearstCount(0)
@@ -18,13 +18,13 @@ namespace Liar
 	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
-		m_testCells(nullptr),m_testCount(0),
-		m_nearstCells(nullptr), m_nearstCount(0)
+		m_nearstCells(nullptr), m_nearstCount(0),
+		m_testCells(nullptr), m_testCount(0)
 #else
 	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
-		m_testCells(nullptr), m_testCount(0),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_testCells(nullptr), m_testCount(0)
 #endif // FindNearest
 #endif // ShareFind
 	{
@@ -32,6 +32,11 @@ namespace Liar
 
 
 	NavMesh::~NavMesh()
+	{
+		Dispose();
+	}
+
+	void NavMesh::Dispose()
 	{
 		if (m_cells)
 		{
@@ -60,7 +65,6 @@ namespace Liar
 #ifndef ShareFind
 		DestoryTestCell();
 #endif // !ShareFind
-
 	}
 
 	void NavMesh::Set()
@@ -667,7 +671,6 @@ namespace Liar
 	{
 		int needCount = 2;
 		int interCount = 0;
-		int tmpIndex = 0;
 
 		int adjacentId = 0;
 		Liar::Cell* sourceAdjacentTmp = nullptr;

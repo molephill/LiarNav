@@ -3,7 +3,7 @@
 
 namespace Liar
 {
-	Triangle::Triangle(Liar::Map const* map):
+	Triangle::Triangle(Liar::Map const* map) :
 		Liar::MapSource(map),
 		m_pointIndexA(0), m_pointIndexB(0), m_pointIndexC(0),
 		m_center(nullptr), m_sides(nullptr)
@@ -13,7 +13,12 @@ namespace Liar
 
 	Triangle::~Triangle()
 	{
-		Liar::MapSource::~MapSource();
+		Dispose();
+	}
+
+	void Triangle::Dispose()
+	{
+		Liar::MapSource::Dispose();
 
 		m_center->~Vector2f();
 		free(m_center);

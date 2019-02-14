@@ -49,6 +49,8 @@ namespace Liar
 		Liar::Vector2f& GetPointB() const;
 		Liar::Vector2f& GetPointC() const;
 
+		void Dispose();
+
 #ifdef EditorMod
 		Liar::Vector2f* GetCenter() const { return m_center; };
 #endif // EditorMod

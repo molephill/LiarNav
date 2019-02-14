@@ -6,8 +6,8 @@ namespace Liar
 	Map::Map() :
 		m_vertexs(nullptr), m_numberVertex(0),
 		m_polygons(nullptr), m_numberPolygon(0),
-		m_navMesh(nullptr), 
-		m_minX(Liar::ZERO), m_minY(Liar::ZERO), m_maxX(Liar::ZERO), m_maxY(Liar::ZERO)
+		m_minX(Liar::ZERO), m_minY(Liar::ZERO), m_maxX(Liar::ZERO), m_maxY(Liar::ZERO),
+		m_navMesh(nullptr)
 	{
 	}
 

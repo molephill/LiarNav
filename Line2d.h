@@ -43,6 +43,7 @@ namespace Liar
 		bool Equals(const Liar::Line2d&, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
 		bool Equals(const Liar::Vector2f&, const Liar::Vector2f&, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
 		bool Equals(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
+		void Dispose();
 
 	private:
 		Liar::NAVDTYPE SignedDistance(const Liar::Vector2f& v) const;

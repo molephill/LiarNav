@@ -3,7 +3,7 @@
 
 namespace Liar
 {
-	Line2d::Line2d(Liar::Map const* map):
+	Line2d::Line2d(Liar::Map const* map) :
 		Liar::MapSource(map),
 		m_pointIndexA(0), m_pointIndexB(0)
 	{
@@ -12,7 +12,12 @@ namespace Liar
 
 	Line2d::~Line2d()
 	{
-		Liar::MapSource::~MapSource();
+		Dispose();
+	}
+
+	void Line2d::Dispose()
+	{
+		Liar::MapSource::Dispose();
 	}
 
 	void Line2d::Set(Liar::Map const* map)

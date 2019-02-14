@@ -4,15 +4,15 @@
 namespace Liar
 {
 //#define _DEBUG 1
-#define ShareFind 1
-#define EditorMod 1
+//#define ShareFind 1
+//#define EditorMod 1
+//#define DEBUG_NIF 1
+//#define UNION_POLYGON 1
+//#define UNIQUE_POINT 1
 #define FindNearest 1
 #define OutFind 1
-#define DEBUG_NIF 1
 #define PASS_FIRST 1
 #define FIND_IN_SAME_MAP 1
-#define UNION_POLYGON 1
-#define UNIQUE_POINT 1
 
 	// data type
 	typedef float NAVDTYPE;
@@ -24,7 +24,7 @@ namespace Liar
 	const static NAVDTYPE ZERO = 0.0f;
 
 	// define version
-	const static int NAV_VERSION = 2;
+	const static int NAV_VERSION = 1;
 
 	enum LineClassification
 	{

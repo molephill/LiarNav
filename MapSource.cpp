@@ -3,14 +3,14 @@
 
 namespace Liar
 {
-	MapSource::MapSource(const Liar::Map* map):
+	MapSource::MapSource(const Liar::Map* map) :
 		m_map(map)
 	{
 	}
 
 	MapSource::~MapSource()
 	{
-		m_map = nullptr;
+		Dispose();
 	}
 
 	void MapSource::Set(const Liar::Map * map)
@@ -26,5 +26,10 @@ namespace Liar
 	Liar::Vector2f* MapSource::GetVertex(Liar::Uint index) const
 	{
 		return m_map->GetVertex(index);
+	}
+
+	void MapSource::Dispose()
+	{
+		m_map = nullptr;
 	}
 }

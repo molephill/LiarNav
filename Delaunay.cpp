@@ -130,7 +130,6 @@ namespace Liar
 		Line2d* edge = (Line2d*)malloc(sizeof(Line2d));
 		edge->Set(initEdge);
 
-		size_t blockSize = 0;
 		Vector2f* interscetVector = (Vector2f*)malloc(sizeof(Vector2f));
 		interscetVector->Set(Liar::ZERO, Liar::ZERO);
 
@@ -910,8 +909,8 @@ namespace Liar
 	// ============================== Node =========================
 	Liar::Delaunay::Node::Node(Liar::Map const* map) :
 		Liar::MapSource(map),
-		v(0), i(false), p(false), o(false), isMain(false),
-		other(nullptr), next(nullptr)
+		v(0), i(false), p(false), o(false),
+		other(nullptr), isMain(false), next(nullptr)
 	{}
 
 	Liar::Delaunay::Node::~Node()

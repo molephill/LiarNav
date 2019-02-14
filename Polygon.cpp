@@ -4,7 +4,7 @@
 
 namespace Liar
 {
-	Polygon::Polygon(const Liar::Map* map):
+	Polygon::Polygon(const Liar::Map* map) :
 		Liar::MapSource(map),
 		m_rect(nullptr), m_isClockWise(Liar::ClockWiseDefine::CLOCK_NO_DEFINE),
 		m_pointIndices(nullptr), m_numberPoints(0)
@@ -14,7 +14,12 @@ namespace Liar
 
 	Polygon::~Polygon()
 	{
-		Liar::MapSource::~MapSource();
+		Dispose();
+	}
+
+	void Polygon::Dispose()
+	{
+		Liar::MapSource::Dispose();
 
 		if (m_rect)
 		{

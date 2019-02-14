@@ -4,9 +4,9 @@ namespace Liar
 {
 	WayPoint::WayPoint() :
 		m_position(nullptr),
-		m_caller(nullptr),
 		m_lineAPointA(nullptr), m_lineAPointB(nullptr),
-		m_lineBPointA(nullptr), m_lineBPointB(nullptr)
+		m_lineBPointA(nullptr), m_lineBPointB(nullptr),
+		m_caller(nullptr)
 	{
 	}
 
@@ -84,7 +84,7 @@ namespace Liar
 	{
 		Liar::Vector2f& startPt = *m_position;
 		Liar::Cell* caller = m_caller;
-		Liar::Cell* lastCell = caller;
+		//Liar::Cell* lastCell = caller;
 
 		Liar::Line2d* outSide = caller->GetSide(caller->arrivalWall);	//路径线在网格中的穿出边
 		Liar::Vector2f& lastPtA = outSide->GetPointA();
@@ -179,7 +179,7 @@ namespace Liar
 			{
 				if (Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
 				{
-					lastCell = caller;
+					//lastCell = caller;
 					// 这里表明lastLineB是一条线，lastLineA是个点
 					if (typeB_A == Liar::PointClassification::LEFT_SIDE)
 					{
@@ -198,7 +198,7 @@ namespace Liar
 				}
 				else if (Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
 				{
-					lastCell = caller;
+					//lastCell = caller;
 					// 这里表明lastLineA是一条线，lastLineB是个点
 					if (typeA_B == Liar::PointClassification::RIGHT_SIDE)
 					{
@@ -221,7 +221,7 @@ namespace Liar
 				(typeA_A == Liar::PointClassification::ON_LINE && Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
 				)
 			{
-				lastCell = caller;
+				//lastCell = caller;
 				//重设直线
 				m_lineAPointB->Set(testPtAX, testPtAY);
 				lastPtAX = testPtAX;
@@ -234,7 +234,7 @@ namespace Liar
 				(typeB_B == Liar::PointClassification::ON_LINE && Length(*m_lineBPointA, *m_lineBPointB) <= epsilon)
 				)
 			{
-				lastCell = caller;
+				//lastCell = caller;
 				//重设直线
 				m_lineBPointB->Set(testPtBX, testPtBY);
 				lastPtBX = testPtBX;
@@ -252,7 +252,7 @@ namespace Liar
 					{
 						closeB = i;
 						closeBPoint = m_lineBPointB;
-						lastCell = caller;
+						//lastCell = caller;
 					}
 				}
 
@@ -263,7 +263,7 @@ namespace Liar
 					{
 						closeA = i;
 						closeAPoint = m_lineAPointB;
-						lastCell = caller;
+						//lastCell = caller;
 					}
 				}
 			}

@@ -140,7 +140,9 @@ namespace Liar
 			if (map->InMap(startX, startY) && map->InMap(endX, endY))
 			{
 				Liar::Vector2f** out = map->FindPath(startX, startY, endX, endY, count);
+#ifdef EditorMod
 				map->SetCrossInfo(m_crossList, m_crossCount);
+#endif // EditorMod
 				return out;
 			}
 		}

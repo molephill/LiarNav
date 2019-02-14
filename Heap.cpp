@@ -2,7 +2,7 @@
 
 namespace Liar
 {
-	Heap::Heap():
+	Heap::Heap() :
 		m_heap(nullptr), m_numCells(0), m_curNum(0)
 	{
 	}

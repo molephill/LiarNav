@@ -51,6 +51,7 @@ namespace Liar
 		void ComputeHeuristic(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		Liar::Int GetIndex() const { return m_index; };
 		bool Equals(const Liar::Cell&);
+		void Dispose();
 
 #if defined(DEBUG_NIF) || defined(EditorMod)
 		void WriteErlang(std::ofstream&);

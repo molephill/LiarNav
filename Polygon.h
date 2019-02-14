@@ -41,6 +41,7 @@ namespace Liar
 		Liar::Uint GetNumPoints() const { return m_numberPoints; };
 		void AddPointIndex(Liar::Uint);
 		Liar::Uint GetPointIndex(Liar::Uint) const;
+		void Dispose();
 	};
 }
 

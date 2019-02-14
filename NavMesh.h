@@ -54,6 +54,7 @@ namespace Liar
 		void AddCell(Liar::Cell*);
 		Liar::Uint LinkCells(bool = true);
 		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE);
+		void Dispose();
 
 	private:
 		Liar::Cell* FindClosestCell(const Vector2f&, bool = true);
@@ -102,6 +103,7 @@ namespace Liar
 
 #ifndef ShareFind
 		Liar::Cell* AddTestCell(Liar::Cell*);
+	public:
 		void DestoryTestCell();
 #endif // !ShareFind
 

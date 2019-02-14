@@ -36,6 +36,7 @@ namespace Liar
 		void Set(const Liar::Map*);
 		void Set(const Liar::MapSource&);
 		Liar::Vector2f* GetVertex(Liar::Uint) const;
+		void Dispose();
 	};
 }
 

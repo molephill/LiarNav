@@ -2,12 +2,12 @@
 
 namespace Liar
 {
-	Cell::Cell(Liar::Map const* map):
+	Cell::Cell(Liar::Map const* map) :
 		Liar::Triangle(map),
 		m_index(0), m_links((Liar::Int*)malloc(sizeof(Liar::Int) * 3)),
-		sessionId(0),f(Liar::ZERO),h(Liar::ZERO),
-		isOpen(false),parent(nullptr), arrivalWall(-1), checkLinkCount(0),
-		m_wallDistance((Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE)*3))
+		m_wallDistance((Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE) * 3)),
+		sessionId(0), f(Liar::ZERO), h(Liar::ZERO),
+		isOpen(false), parent(nullptr), arrivalWall(-1), checkLinkCount(0)
 	{
 		CalcSides();
 	}
@@ -15,7 +15,12 @@ namespace Liar
 
 	Cell::~Cell()
 	{
-		Liar::Triangle::~Triangle();
+		Dispose();
+	}
+
+	void Cell::Dispose()
+	{
+		Liar::Triangle::Dispose();
 		free(m_links);
 		free(m_wallDistance);
 	}
