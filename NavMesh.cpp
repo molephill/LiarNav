@@ -7,7 +7,7 @@ namespace Liar
 	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
-		m_nearstCells(nullptr), m_nearstCount(0),
+		m_nearstCells(nullptr), m_nearstCount(0)
 #else
 	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
@@ -189,7 +189,7 @@ namespace Liar
 
 	Liar::Vector2f** NavMesh::BuildPath(
 		Liar::Cell* startCell, Liar::NAVDTYPE startX, Liar::NAVDTYPE startY,
-		Liar::Cell* endCell, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY,
+		Liar::Cell* endCell, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, 
 		Liar::Uint& outLen, bool rw)
 	{
 		m_openList->Clear();
