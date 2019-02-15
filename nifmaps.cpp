@@ -5,6 +5,12 @@
 static Liar::NifMap* maps;
 static int mapcount = 0;
 
+#ifdef DEBUG_NIF
+static int num_log = 0;
+static int log_max = 50;
+#endif // DEBUG_NIF
+
+
 static Liar::NifMap* GetMap(int bid)
 {
 	if (maps)
@@ -150,14 +156,16 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 
 	Liar::NifMap* map = GetMap(bid);
 
+	if (!map) return res;
+
 #ifdef DEBUG_NIF
-	Liar::MapSource::WriteLog("start_find_path", false);
+	++num_log;
+	bool add = num_log > log_max ? false : true;
+	Liar::MapSource::WriteLog("start_find_path", add);
 	char str[512];
 	sprintf_s(str, "bid:%d", bid);
 	Liar::MapSource::WriteLog(str);
 #endif // DEBUG_NIF
-
-	if (!map) return res;
 
 	Liar::NAVDTYPE startx = Liar::ZERO;
 	if (!Liar::NifMap::ReadErlangCPType(env, argv[1], startx)) return res;
@@ -185,8 +193,10 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 			int lastIndex = 0;
 #ifdef PASS_FIRST
 			lastIndex = 1;
+			path[0]->~Vector2f();
+			free(path[0]);
+			path[0] = nullptr;
 #endif // PASS_FIRST
-
 			for (int i = count - 1; i >= lastIndex; --i)
 			{
 				res = enif_make_list_cell(env, enif_make_double(env, path[i]->GetY()), res);
@@ -201,6 +211,9 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 	}
 	catch (char *)
 	{
+#ifdef DEBUG_NIF
+		Liar::MapSource::WriteLog("find_error");
+#endif
 	}
 
 	return res;

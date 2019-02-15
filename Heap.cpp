@@ -19,22 +19,11 @@ namespace Liar
 		}
 	}
 
-	void Heap::Init()
-	{
-		m_heap = nullptr;
-		m_numCells = 0;
-		m_curNum = 0;
-	}
-
 	void Heap::Set(Liar::Uint size)
 	{
-		if (m_numCells < size + 1)
-		{
-			size_t blockSize = sizeof(sizeof(Liar::Cell*)) *(size + 1);
-			if (m_heap) m_heap = (Liar::Cell**)realloc(m_heap, blockSize);
-			else m_heap = (Liar::Cell**)malloc(blockSize);
-		}
 		m_numCells = size + 1;
+		size_t blockSize = sizeof(sizeof(Liar::Cell*)) * m_numCells;
+		m_heap = (Liar::Cell**)malloc(blockSize);
 		for (Liar::Uint i = 0; i < m_numCells; ++i) m_heap[i] = nullptr;
 		m_curNum = 0;
 	}

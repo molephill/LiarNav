@@ -40,7 +40,7 @@ namespace Liar
 
 	public:
 		bool Set(Liar::Map const*, Liar::Uint, Liar::Uint, Liar::Uint);
-		void Set(const Liar::Cell&);
+		void Set(const Liar::Cell&, bool=true);
 		void SetIndex(Liar::Int);
 		void CheckAndLink(Liar::Cell&);
 		bool CheckAllLink() const;

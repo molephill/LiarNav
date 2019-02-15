@@ -9,7 +9,6 @@ namespace Liar
 		sessionId(0), f(Liar::ZERO), h(Liar::ZERO),
 		isOpen(false), parent(nullptr), arrivalWall(-1), checkLinkCount(0)
 	{
-		CalcSides();
 	}
 
 
@@ -46,17 +45,20 @@ namespace Liar
 		return true;
 	}
 
-	void Cell::Set(const Liar::Cell& source)
+	void Cell::Set(const Liar::Cell& source, bool init)
 	{
-		Liar::Triangle::Set(source);
+		Liar::Triangle::Set(source, init);
 
 		size_t blockSize = sizeof(Liar::Int) * 3;
 
-		m_links = (Liar::Int*)malloc(blockSize);
+		if(init || !m_links) m_links = (Liar::Int*)malloc(blockSize);
 		memcpy(m_links, source.m_links, blockSize);
 
-		blockSize = sizeof(Liar::NAVDTYPE) * 3;
-		m_wallDistance = (Liar::NAVDTYPE*)malloc(blockSize);
+		if (init || !m_wallDistance)
+		{
+			blockSize = sizeof(Liar::NAVDTYPE) * 3;
+			m_wallDistance = (Liar::NAVDTYPE*)malloc(blockSize);
+		}
 		memcpy(m_wallDistance, source.m_wallDistance, blockSize);
 
 		m_index = source.m_index;

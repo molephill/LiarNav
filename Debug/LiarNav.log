@@ -1,18 +1,11 @@
-﻿  Cell.cpp
-  Delaunay.cpp
-  Heap.cpp
+﻿  Delaunay.cpp
   Line2d.cpp
-  main.cpp
   Map.cpp
   MapSource.cpp
   NavMesh.cpp
   NifMap.cpp
-  nifmaps.cpp
   Polygon.cpp
   Triangle.cpp
-  Vector2D.cpp
-  Vector2f.cpp
-  WayPoint.cpp
+  nifmaps.cpp
   正在生成代码...
-    正在创建库 E:\c++\LiarNav\Debug\LiarNav.lib 和对象 E:\c++\LiarNav\Debug\LiarNav.exp
   LiarNav.vcxproj -> E:\c++\LiarNav\Debug\LiarNav.exe

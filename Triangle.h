@@ -36,7 +36,7 @@ namespace Liar
 		void Set(Liar::Map const*);
 		bool Set(Liar::Uint, Liar::Uint, Liar::Uint);
 		bool Set(Liar::Map const*, Liar::Uint, Liar::Uint, Liar::Uint);
-		void Set(const Liar::Triangle&);
+		void Set(const Liar::Triangle&, bool = true);
 
 		bool IsPointIn(const Liar::Vector2f&, bool = true);
 		bool IsPointIn(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true);

@@ -24,6 +24,7 @@ namespace Liar
 		~NavMesh();
 
 	private:
+		// data refrence
 		Liar::Cell** m_cells;
 		Liar::Uint m_numberCell;
 
@@ -44,16 +45,15 @@ namespace Liar
 #ifndef ShareFind
 		Liar::Cell** m_testCells;
 		Liar::Uint m_testCount;
-#endif // !ShareFind
-
+		Liar::Cell* m_tmpClosetCell;
+		Liar::Int m_pathSessionId;
+#else
 		static int PATHSESSIONID;
+#endif // !ShareFind
 
 	public:
 		Liar::Vector2f** FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&, bool rw = true);
-		void Set();
-		void AddCell(Liar::Cell*);
-		Liar::Uint LinkCells(bool = true);
-		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE);
+		void Set(Liar::Cell**, Liar::Uint);
 		void Dispose();
 
 	private:
@@ -103,11 +103,10 @@ namespace Liar
 
 #ifndef ShareFind
 		Liar::Cell* AddTestCell(Liar::Cell*);
-	public:
-		void DestoryTestCell();
 #endif // !ShareFind
 
 #if defined(DEBUG_NIF) || defined(EditorMod)
+	public:
 		void WriteErlang(std::ofstream&);
 #endif
 

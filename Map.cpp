@@ -6,6 +6,7 @@ namespace Liar
 	Map::Map() :
 		m_vertexs(nullptr), m_numberVertex(0),
 		m_polygons(nullptr), m_numberPolygon(0),
+		m_cells(nullptr), m_numberCell(0),
 		m_minX(Liar::ZERO), m_minY(Liar::ZERO), m_maxX(Liar::ZERO), m_maxY(Liar::ZERO),
 		m_navMesh(nullptr)
 	{
@@ -26,21 +27,21 @@ namespace Liar
 			m_vertexs = nullptr;
 		}
 
-		if (m_polygons)
+		DisposePolygons();
+
+		if (m_cells)
 		{
-			for (i = 0; i < m_numberPolygon; ++i)
+			for (Liar::Uint i = 0; i < m_numberCell; ++i)
 			{
-				m_polygons[i]->~Polygon();
-				free(m_polygons[i]);
-				m_polygons[i] = nullptr;
+				m_cells[i]->~Cell();
+				free(m_cells[i]);
+				m_cells[i] = nullptr;
 			}
-			free(m_polygons);
-			m_polygons = nullptr;
+			free(m_cells);
+			m_cells = nullptr;
 		}
 
-		m_navMesh->~NavMesh();
-		free(m_navMesh);
-		m_navMesh = nullptr;
+		DisposeNavMesh();
 
 	}
 
@@ -52,19 +53,44 @@ namespace Liar
 		m_polygons = nullptr;
 		m_numberPolygon = 0;
 
+		m_cells = nullptr;
+		m_numberCell = 0;
+
 		m_minX = m_minY = m_maxX = m_maxY = Liar::ZERO;
 
-		m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
-		m_navMesh->Set();
+		m_navMesh = nullptr;
+	}
+
+	bool Map::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	{
+		for (Liar::Uint k = 0; k < m_numberCell; ++k)
+		{
+			if (m_cells[k]->IsPointIn(x, y))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	Liar::Vector2f** Map::FindPath(Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, Liar::Uint& count, bool CW)
 	{
-		Liar::Vector2f** out = m_navMesh->FindPath(startX, startY, endX, endY, count, CW);
-#ifndef ShareFind
-		m_navMesh->DestoryTestCell();
-#endif // ShareFind
-		return out;
+		if (!m_navMesh)
+		{
+			m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
+			m_navMesh->Set(m_cells, m_numberCell);
+		}
+		return m_navMesh->FindPath(startX, startY, endX, endY, count, CW);
+	}
+
+	void Map::DisposeNavMesh()
+	{
+		if (m_navMesh)
+		{
+			m_navMesh->~NavMesh();
+			free(m_navMesh);
+			m_navMesh = nullptr;
+		}
 	}
 
 	bool Map::InMap(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
@@ -74,11 +100,6 @@ namespace Liar
 			return true;
 		}
 		return false;
-	}
-
-	bool Map::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
-	{
-		return m_navMesh->CanWalk(x, y);
 	}
 
 	void Map::CalcBound(Liar::Int index, bool force)
@@ -169,6 +190,21 @@ namespace Liar
 		}
 	}
 
+	void Map::DisposePolygons()
+	{
+		if (m_polygons)
+		{
+			for (Liar::Uint i = 0; i < m_numberPolygon; ++i)
+			{
+				m_polygons[i]->~Polygon();
+				free(m_polygons[i]);
+				m_polygons[i] = nullptr;
+			}
+			free(m_polygons);
+			m_polygons = nullptr;
+		}
+	}
+
 	Liar::Uint Map::AddVertex(const Liar::Vector2f& source)
 	{
 		return AddVertex(source.GetX(), source.GetY());
@@ -224,12 +260,38 @@ namespace Liar
 
 	void Map::AddNavMeshCell(Liar::Cell* cell)
 	{
-		m_navMesh->AddCell(cell);
+		cell->SetIndex(m_numberCell++);
+		size_t blockSize = sizeof(Liar::Cell*)*m_numberCell;
+		if (m_cells) m_cells = (Liar::Cell**)realloc(m_cells, blockSize);
+		else m_cells = (Liar::Cell**)malloc(blockSize);
+		m_cells[m_numberCell - 1] = cell;
 	}
 
 	Liar::Uint Map::NavMeshLinkCells(bool isCW)
 	{
-		return m_navMesh->LinkCells(isCW);
+		if (!isCW)
+		{
+			Liar::Uint i = 0;
+			Liar::Uint j = m_numberCell - 1;
+			for (i = 0, j = m_numberCell - 1; i <= m_numberCell / 2 - 1; ++i, --j)
+			{
+				Liar::Cell* tmpCell = m_cells[i];
+				m_cells[j]->SetIndex(i);
+				tmpCell->SetIndex(j);
+				m_cells[i] = m_cells[j];
+				m_cells[j] = tmpCell;
+			}
+		}
+
+		for (Liar::Uint i = 0; i < m_numberCell; ++i)
+		{
+			for (Liar::Uint j = 0; j < m_numberCell; ++j)
+			{
+				if (i != j) m_cells[i]->CheckAndLink(*(m_cells[j]));
+			}
+		}
+
+		return m_numberCell;
 	}
 
 #ifdef UNION_POLYGON

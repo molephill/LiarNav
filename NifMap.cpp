@@ -152,6 +152,10 @@ namespace Liar
 #ifdef EditorMod
 				map->SetCrossInfo(m_crossList, m_crossCount);
 #endif // EditorMod
+#ifndef ShareFind
+				map->DisposeNavMesh();
+#endif // ShareFind
+
 				return out;
 			}
 		}

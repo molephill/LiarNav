@@ -68,26 +68,34 @@ namespace Liar
 		return false;
 	}
 
-	void Triangle::Set(const Liar::Triangle& source)
+	void Triangle::Set(const Liar::Triangle& source, bool init)
 	{
 		Liar::MapSource::Set(source);
 		m_pointIndexA = source.m_pointIndexA;
 		m_pointIndexB = source.m_pointIndexB;
 		m_pointIndexC = source.m_pointIndexC;
 
-		m_center = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		if(init || !m_center) m_center = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 		m_center->Set(*(source.m_center));
 
 		if (source.m_sides)
 		{
 			size_t size = sizeof(Liar::Line2d*) * 3;
-			m_sides = (Liar::Line2d**)malloc(size);
+			bool initFirst = init || !m_sides;
+			if(initFirst) m_sides = (Liar::Line2d**)malloc(size);
 			//memcpy(m_sides, *(source.m_sides), size);
 			for (size_t i = 0; i < 3; ++i)
 			{
-				Liar::Line2d* line = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
-				line->Set(*(source.m_sides[i]));
-				m_sides[i] = line;
+				if (initFirst)
+				{
+					Liar::Line2d* line = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
+					line->Set(*(source.m_sides[i]));
+					m_sides[i] = line;
+				}
+				else
+				{
+					m_sides[i]->Set(*(source.m_sides[i]));
+				}
 			}
 		}
 	}
@@ -114,10 +122,7 @@ namespace Liar
 		for (int i = 0; i < 3; ++i)
 		{
 			Liar::Line2d* line = m_sides[i];
-			if (line->Equals(pa, pb))
-			{
-				return true;
-			}
+			if (line->Equals(pa, pb)) return true;
 		}
 
 		return false;

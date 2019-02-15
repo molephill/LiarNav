@@ -30,6 +30,9 @@ namespace Liar
 		Liar::Polygon** m_polygons;
 		Liar::Uint m_numberPolygon;
 
+		Liar::Cell** m_cells;
+		Liar::Uint m_numberCell;
+
 		Liar::NAVDTYPE m_minX;
 		Liar::NAVDTYPE m_minY;
 		Liar::NAVDTYPE m_maxX;
@@ -37,6 +40,9 @@ namespace Liar
 
 		// navMesh
 		Liar::NavMesh* m_navMesh;
+
+		// dispose_polygons
+		void DisposePolygons();
 
 	public:
 		void Init();
@@ -57,9 +63,9 @@ namespace Liar
 		// add NavMesh cells;
 		void AddNavMeshCell(Liar::Cell*);
 		Liar::Uint NavMeshLinkCells(bool = true);
+		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE);
 
 		bool InMap(Liar::NAVDTYPE, Liar::NAVDTYPE);
-		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		Liar::Vector2f** FindPath(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&, bool = true);
 		void CalcBound(Liar::Int = 0, bool = false);
 
@@ -68,11 +74,13 @@ namespace Liar
 		Liar::NAVDTYPE GetMaxX() const { return m_maxX; };
 		Liar::NAVDTYPE GetMaxY() const { return m_maxY; };
 
+		void DisposeNavMesh();
+
 #ifdef EditorMod
 		Liar::Polygon** GetPolygons() const { return m_polygons; };
 		Liar::Uint GetPolygonSize() const { return m_numberPolygon; };
-		Liar::Cell** GetCells() const { return m_navMesh ? m_navMesh->GetCells() : nullptr; };
-		Liar::Uint GetCellCount() const { return m_navMesh ? m_navMesh->GetCellCount() : 0; };
+		Liar::Cell** GetCells() const { return m_cells; };
+		Liar::Uint GetCellCount() const { return m_numberCell; };
 		void SetCrossInfo(Liar::Cell** crossList, Liar::Uint& crossCout) { m_navMesh->GetCrossInfo(crossList, crossCout); };
 #endif // EditorMod
 
