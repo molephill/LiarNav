@@ -890,6 +890,7 @@ namespace Liar
 			free(m_path);
 			m_path = nullptr;
 		}
+		m_numPath = 0;
 	}
 
 #ifndef ShareFind
