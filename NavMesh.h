@@ -29,8 +29,14 @@ namespace Liar
 		Liar::Uint m_numberCell;
 
 		Liar::Heap* m_openList;
+
 		Liar::Cell** m_closeList;
 		Liar::Uint m_closeCount;
+
+		Liar::Vector2f** m_path;
+		Liar::Uint m_numPath;
+
+		static Liar::Uint PATHMAX;
 
 #ifdef FindNearest
 		Liar::Cell** m_nearstCells;
@@ -67,8 +73,8 @@ namespace Liar
 		Liar::Vector2f** GetPath(const Vector2f&, const Vector2f&, Liar::Uint&, bool = true);
 		Liar::Vector2f** GetPath(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&, bool = true);
 
-		Liar::Vector2f** AddPathPoint(Liar::Vector2f**, const Liar::Vector2f&, Liar::Uint&);
-		Liar::Vector2f** AddPathPoint(Liar::Vector2f**, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&);
+		Liar::Vector2f** AddPathPoint(const Liar::Vector2f&, Liar::Uint&);
+		Liar::Vector2f** AddPathPoint(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&);
 
 		Liar::Vector2f** BuildPath(Liar::Cell*, const Liar::Vector2f&, Liar::Cell*, const Liar::Vector2f&, Liar::Uint&, bool = true);
 		Liar::Vector2f** BuildPath(Liar::Cell*, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Cell*, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&, bool = true);
@@ -88,6 +94,7 @@ namespace Liar
 		int LineIntersectSide(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE);
 
 		bool GetCrossVector2f(const Vector2f&, const Vector2f&, const Vector2f&, const Vector2f&, NAVDTYPE&, NAVDTYPE&);
+		void DisposePath();
 
 #if FindNearest
 		void FindNearestPath(Liar::Uint, Liar::Vector2f**, Liar::Uint&);

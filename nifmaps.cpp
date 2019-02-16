@@ -193,20 +193,12 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 			int lastIndex = 0;
 #ifdef PASS_FIRST
 			lastIndex = 1;
-			path[0]->~Vector2f();
-			free(path[0]);
-			path[0] = nullptr;
 #endif // PASS_FIRST
 			for (int i = count - 1; i >= lastIndex; --i)
 			{
 				res = enif_make_list_cell(env, enif_make_double(env, path[i]->GetY()), res);
 				res = enif_make_list_cell(env, enif_make_double(env, path[i]->GetX()), res);
-				path[i]->~Vector2f();
-				free(path[i]);
-				path[i] = nullptr;
 			}
-			free(path);
-			path = nullptr;
 		}
 	}
 	catch (char *)

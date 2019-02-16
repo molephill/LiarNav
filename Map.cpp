@@ -291,6 +291,10 @@ namespace Liar
 			}
 		}
 
+#ifndef EditorMod
+		DisposePolygons();
+#endif // !EditorMap
+
 		return m_numberCell;
 	}
 

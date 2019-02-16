@@ -7,17 +7,20 @@ namespace Liar
 	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_path(nullptr), m_numPath(0),
 		m_nearstCells(nullptr), m_nearstCount(0)
 #else
 	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
-		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0)
+		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_path(nullptr), m_numPath(0)
 #endif // FindNearest
 #else
 #ifdef FindNearest
 	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_path(nullptr), m_numPath(0),
 		m_nearstCells(nullptr), m_nearstCount(0),
 		m_testCells(nullptr), m_testCount(0),
 		m_tmpClosetCell(nullptr), m_pathSessionId(0)
@@ -25,6 +28,7 @@ namespace Liar
 	NavMesh::NavMesh() :
 		m_cells(nullptr), m_numberCell(0),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_path(nullptr), m_numPath(0),
 		m_testCells(nullptr), m_testCount(0),
 		m_tmpClosetCell(nullptr), m_pathSessionId(0)
 #endif // FindNearest
@@ -50,6 +54,8 @@ namespace Liar
 			free(m_closeList);
 			m_closeList = nullptr;
 		}
+
+		DisposePath();
 
 #ifndef ShareFind
 		if (m_testCells)
@@ -89,6 +95,9 @@ namespace Liar
 		m_closeList = nullptr;
 		m_closeCount = 0;
 
+		m_path = nullptr;
+		m_numPath = 0;
+
 #ifdef FindNearest
 		m_nearstCells = nullptr;
 		m_nearstCount = 0;
@@ -127,6 +136,8 @@ namespace Liar
 	Liar::Vector2f** NavMesh::FindPath(Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, Liar::Uint& outLen, bool rw)
 	{
 
+		if (m_numPath >= Liar::NavMesh::PATHMAX) DisposePath();
+
 #ifdef EditorMod
 		DisposeFindCtr();
 #endif // EditorMod
@@ -147,10 +158,9 @@ namespace Liar
 #ifdef OutFind
 		if (!startCell)
 		{
-			Liar::Vector2f** out = nullptr;
-			out = AddPathPoint(out, startX, startY, outLen);
-			out = AddPathPoint(out, endX, endY, outLen);
-			return out;
+			AddPathPoint(startX, startY, outLen);
+			AddPathPoint(endX, endY, outLen);
+			return m_path;
 		}
 #endif // OutFind
 
@@ -160,10 +170,9 @@ namespace Liar
 		if (startCell->Equals(*endCell) || TestOneLine2D(startX, startY, endX, endY, startCell, endCell))
 #endif // ShareFind
 		{
-			Liar::Vector2f** out = nullptr;
-			out = AddPathPoint(out, startX, startY, outLen);
-			out = AddPathPoint(out, endX, endY, outLen);
-			return out;
+			AddPathPoint(startX, startY, outLen);
+			AddPathPoint(endX, endY, outLen);
+			return m_path;
 		}
 		else
 		{
@@ -336,21 +345,19 @@ namespace Liar
 		int cellPathSize = 0;
 		Liar::Cell** cellPath = GetCellPath(cellPathSize);
 
-		Liar::Vector2f** pathArr = nullptr;
-
 		if (cellPathSize > 0)
 		{
 			//开始点
-			pathArr = AddPathPoint(pathArr, startX, startY, outLen);
+			AddPathPoint(startX, startY, outLen);
 			//起点与终点在同一三角形中
 			if (cellPathSize == 1)
 			{
-				pathArr = AddPathPoint(pathArr, endX, endY, outLen);
+				AddPathPoint(endX, endY, outLen);
 			}
 			else
 			{
 				Liar::WayPoint* w = (Liar::WayPoint*)malloc(sizeof(Liar::WayPoint));
-				w->Set(cellPath[0], *(pathArr[0]));
+				w->Set(cellPath[0], *(m_path[0]));
 
 #ifdef FindNearest
 				int preNCount = m_nearstCount++;
@@ -361,7 +368,7 @@ namespace Liar
 				while (!(w->GetPos().Equals(endX, endY)))
 				{
 					w->GetFurthestWayPoint(cellPath, cellPathSize, endX, endY, rw);
-					pathArr = AddPathPoint(pathArr, w->GetPos(), outLen);
+					AddPathPoint(w->GetPos(), outLen);
 
 #ifdef FindNearest
 					preNCount = m_nearstCount++;
@@ -375,7 +382,7 @@ namespace Liar
 				w = nullptr;
 
 #ifdef FindNearest
-				FindNearestPath(0, pathArr, outLen);
+				FindNearestPath(0, m_path, outLen);
 #ifdef ShareFind
 				for (Liar::Uint i = 0; i < m_nearstCount; ++i) m_nearstCells[i]->checkLinkCount = 0;
 #endif
@@ -387,10 +394,11 @@ namespace Liar
 			}
 
 			free(cellPath);
+			m_closeCount = 0;
 			free(m_closeList);
 			m_closeList = nullptr;
 		}
-		return pathArr;
+		return m_path;
 
 	}
 
@@ -452,16 +460,20 @@ namespace Liar
 		{
 			for (i = setStartIndex; i < static_cast<Liar::Uint>(revertIndex); ++i)
 			{
-				path[i]->~Vector2f();
+				/*path[i]->~Vector2f();
 				free(path[i]);
+				path[i] = nullptr;*/
 				m_nearstCells[i]->checkLinkCount = 0;
 				m_nearstCells[i] = nullptr;
 			}
 
 			resetIndex = setStartIndex;
+			Liar::Vector2f* tmp = nullptr;
 			for (i = revertIndex; i < pathCount; ++i)
 			{
+				tmp = path[resetIndex];
 				path[resetIndex++] = path[i];
+				path[i] = tmp;
 			}
 
 			resetIndex = setStartIndex;
@@ -517,22 +529,30 @@ namespace Liar
 	/*
 	*	add point to path
 	*/
-	Liar::Vector2f** NavMesh::AddPathPoint(Liar::Vector2f** path, const Liar::Vector2f& vec, Liar::Uint& len)
+	Liar::Vector2f** NavMesh::AddPathPoint(const Liar::Vector2f& vec, Liar::Uint& len)
 	{
-		return AddPathPoint(path, vec.GetX(), vec.GetY(), len);
+		return AddPathPoint(vec.GetX(), vec.GetY(), len);
 	}
 
-	Liar::Vector2f** NavMesh::AddPathPoint(Liar::Vector2f** path, Liar::NAVDTYPE x, Liar::NAVDTYPE y, Liar::Uint& len)
+	Liar::Vector2f** NavMesh::AddPathPoint(Liar::NAVDTYPE x, Liar::NAVDTYPE y, Liar::Uint& len)
 	{
 		++len;
-		size_t blockSize = sizeof(Liar::Vector2f*)*len;
-		if (path) path = (Liar::Vector2f**)realloc(path, blockSize);
-		else path = (Liar::Vector2f**)malloc(blockSize);
-
-		Liar::Vector2f* addPoint = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		Liar::Vector2f* addPoint = nullptr;
+		if (len > m_numPath)
+		{
+			size_t blockSize = sizeof(Liar::Vector2f*)*len;
+			if (m_path) m_path = (Liar::Vector2f**)realloc(m_path, blockSize);
+			else m_path = (Liar::Vector2f**)malloc(blockSize);
+			m_numPath = len;
+			addPoint = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		}
+		else
+		{
+			addPoint = m_path[len - 1];
+		}
 		addPoint->Set(x, y);
-		path[len - 1] = addPoint;
-		return path;
+		m_path[len - 1] = addPoint;
+		return m_path;
 	}
 
 	/**
@@ -857,6 +877,21 @@ namespace Liar
 		}
 	}
 
+	void NavMesh::DisposePath()
+	{
+		if (m_path)
+		{
+			for (Liar::Uint i = 0; i < m_numPath; ++i)
+			{
+				m_path[i]->~Vector2f();
+				free(m_path[i]);
+				m_path[i] = nullptr;
+			}
+			free(m_path);
+			m_path = nullptr;
+		}
+	}
+
 #ifndef ShareFind
 	Liar::Cell* NavMesh::AddTestCell(Liar::Cell* source)
 	{
@@ -894,4 +929,6 @@ namespace Liar
 		}
 	}
 #endif
+
+	Liar::Uint NavMesh::PATHMAX = 50;
 }
