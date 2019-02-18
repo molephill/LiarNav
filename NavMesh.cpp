@@ -61,7 +61,6 @@ namespace Liar
 		DisposePath();
 
 #ifndef ShareFind
-		
 		DisposeTestCells();
 
 		if (m_tmpClosetCell)

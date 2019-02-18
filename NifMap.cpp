@@ -188,7 +188,7 @@ namespace Liar
 	{
 		Liar::NavMesh* navMesh = nullptr;
 
-		if (multNavMesh)
+		/*if (multNavMesh)
 		{
 			navMesh = multNavMesh;
 		}
@@ -200,7 +200,14 @@ namespace Liar
 				m_navMesh->Init(nullptr);
 			}
 			navMesh = m_navMesh;
+		}*/
+
+		if (!m_navMesh)
+		{
+			m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
+			m_navMesh->Init(nullptr);
 		}
+		navMesh = m_navMesh;
 
 		Liar::Map* map = nullptr;
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
