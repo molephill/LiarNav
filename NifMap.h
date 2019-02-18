@@ -29,6 +29,9 @@ namespace Liar
 		Liar::Map** m_mapList;
 		Liar::Uint m_mapcount;
 
+		// navMesh
+		Liar::NavMesh* m_navMesh;
+
 #ifdef EditorMod
 		Liar::Cell** m_crossList;
 		Liar::Uint m_crossCount;
@@ -40,6 +43,7 @@ namespace Liar
 		Liar::Polygon* CheckAutoAddPolygon(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int BuildMapByIndex(Liar::Uint, bool = true);
 		void CalcAllMapBound();
+		void DisposeNavMesh();
 
 	public:
 		static bool ReadErlangCPType(ErlNifEnv*, ERL_NIF_TERM, NAVDTYPE&);
@@ -48,7 +52,7 @@ namespace Liar
 		bool AddPologyMapByIndex(int, Liar::Vector2f*, Liar::Uint);
 		int BuildAll(bool = true);
 
-		Liar::Vector2f** FindPath(NAVDTYPE startx, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&);
+		Liar::Vector2f** FindPath(NAVDTYPE startx, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&, Liar::NavMesh* = nullptr);
 		bool CanWalk(NAVDTYPE, NAVDTYPE);
 
 		int BuildByList(ErlNifEnv*, ERL_NIF_TERM, bool = false);

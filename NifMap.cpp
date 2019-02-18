@@ -2,8 +2,32 @@
 
 namespace Liar
 {
+#ifdef ShareFind
+#ifdef EditorMod
 	NifMap::NifMap() :
-		m_bid(0), m_mapList(nullptr), m_mapcount(0)
+		m_bid(0),
+		m_mapList(nullptr), m_mapcount(0),
+		m_navMesh(nullptr),
+		m_crossList(nullptr), m_crossCount(0)
+#else
+	NifMap::NifMap() :
+		m_bid(0),
+		m_mapList(nullptr), m_mapcount(0),
+		m_navMesh(nullptr)
+#endif // EditorMod
+#else
+#ifdef EditorMod
+	NifMap::NifMap() :
+		m_bid(0),
+		m_mapList(nullptr), m_mapcount(0),
+		m_crossList(nullptr), m_crossCount(0)
+#else
+	NifMap::NifMap() :
+		m_bid(0),
+		m_mapList(nullptr), m_mapcount(0)
+#endif // EditorMod
+#endif // ShareFind
+
 	{
 	}
 
@@ -25,6 +49,8 @@ namespace Liar
 			m_mapcount = 0;
 		}
 
+		DisposeNavMesh();
+
 #ifdef EditorMod
 		if (m_crossList)
 		{
@@ -39,6 +65,16 @@ namespace Liar
 		}
 #endif // EditorMod
 
+	}
+
+	void NifMap::DisposeNavMesh()
+	{
+		if (m_navMesh)
+		{
+			m_navMesh->~NavMesh();
+			free(m_navMesh);
+			m_navMesh = nullptr;
+		}
 	}
 
 	// from erlang to nav_type
@@ -119,6 +155,14 @@ namespace Liar
 		m_bid = bid;
 		m_mapList = nullptr;
 
+#ifdef ShareFind
+		m_navMesh = nullptr;
+#else
+		m_navMeshes = nullptr;
+		m_curNavMeshIndex = 0;
+		m_totalNumNavMesh = 0;
+#endif // ShareFind
+
 #ifdef EditorMod
 		m_crossList = nullptr;
 		m_crossCount = 0;
@@ -140,20 +184,38 @@ namespace Liar
 		return false;
 	}
 
-	Liar::Vector2f** NifMap::FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint& count)
+	Liar::Vector2f** NifMap::FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint& count, Liar::NavMesh* multNavMesh)
 	{
+		Liar::NavMesh* navMesh = nullptr;
+
+		if (multNavMesh)
+		{
+			navMesh = multNavMesh;
+		}
+		else
+		{
+			if (!m_navMesh)
+			{
+				m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
+				m_navMesh->Init(nullptr);
+			}
+			navMesh = m_navMesh;
+		}
+
 		Liar::Map* map = nullptr;
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
 		{
 			map = m_mapList[i];
 			if (map->InMap(startX, startY) && map->InMap(endX, endY))
 			{
-				Liar::Vector2f** out = map->FindPath(startX, startY, endX, endY, count);
+				navMesh->Set(map);
+				Liar::Vector2f** out = navMesh->FindPath(startX, startY, endX, endY, count);
+				navMesh->SetLock(false);
 #ifdef EditorMod
-				map->SetCrossInfo(m_crossList, m_crossCount);
+				navMesh->GetCrossInfo(m_crossList, m_crossCount);
 #endif // EditorMod
 #ifndef ShareFind
-				map->DisposeNavMesh();
+				--m_curNavMeshIndex;
 #endif // ShareFind
 
 				return out;

@@ -28,6 +28,7 @@ namespace Liar
 		Liar::Uint m_curNum;
 
 	public:
+		void Init();
 		void Set(Liar::Uint);
 		bool Push(Liar::Cell *);
 		Liar::Cell* Pop();

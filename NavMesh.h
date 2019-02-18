@@ -3,6 +3,7 @@
 
 #include "Heap.h"
 #include "WayPoint.h"
+#include "MapSource.h"
 
 #ifdef  EditorMod  
 #define  NAVMESH_API _declspec(dllexport)  
@@ -14,20 +15,17 @@
 namespace Liar
 {
 #ifdef EditorMod
-	class NAVMESH_API NavMesh
+	class NAVMESH_API NavMesh:public Liar::MapSource
 #else
-	class NavMesh
+	class NavMesh:public Liar::MapSource
 #endif // EditorMod
 	{
 	public:
-		NavMesh();
+		NavMesh(const Liar::Map*);
 		~NavMesh();
 
 	private:
-		// data refrence
-		Liar::Cell** m_cells;
-		Liar::Uint m_numberCell;
-
+		bool m_isLock;
 		Liar::Heap* m_openList;
 
 		Liar::Cell** m_closeList;
@@ -59,8 +57,10 @@ namespace Liar
 
 	public:
 		Liar::Vector2f** FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&, bool rw = true);
-		void Set(Liar::Cell**, Liar::Uint);
+		void Init(const Liar::Map*);
+		void Set(const Liar::Map*);
 		void Dispose();
+		void SetLock(bool lock) { m_isLock = lock; };
 
 	private:
 		Liar::Cell* FindClosestCell(const Vector2f&, bool = true);
@@ -96,6 +96,11 @@ namespace Liar
 		bool GetCrossVector2f(const Vector2f&, const Vector2f&, const Vector2f&, const Vector2f&, NAVDTYPE&, NAVDTYPE&);
 		void DisposePath();
 
+#ifndef ShareFind
+		void DisposeTestCells();
+#endif // ShareFind
+
+
 #if FindNearest
 		void FindNearestPath(Liar::Uint, Liar::Vector2f**, Liar::Uint&);
 #endif // FindNearest
@@ -103,19 +108,12 @@ namespace Liar
 #ifdef EditorMod
 	public:
 		void DisposeFindCtr();
-		Liar::Cell** GetCells() const { return m_cells; };
-		Liar::Uint GetCellCount() const { return m_numberCell; };
 		void GetCrossInfo(Liar::Cell**, Liar::Uint&);
 #endif // EditorMod
 
 #ifndef ShareFind
 		Liar::Cell* AddTestCell(Liar::Cell*);
 #endif // !ShareFind
-
-#if defined(DEBUG_NIF) || defined(EditorMod)
-	public:
-		void WriteErlang(std::ofstream&);
-#endif
 
 	};
 }

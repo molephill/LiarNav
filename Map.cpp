@@ -7,8 +7,7 @@ namespace Liar
 		m_vertexs(nullptr), m_numberVertex(0),
 		m_polygons(nullptr), m_numberPolygon(0),
 		m_cells(nullptr), m_numberCell(0),
-		m_minX(Liar::ZERO), m_minY(Liar::ZERO), m_maxX(Liar::ZERO), m_maxY(Liar::ZERO),
-		m_navMesh(nullptr)
+		m_minX(Liar::ZERO), m_minY(Liar::ZERO), m_maxX(Liar::ZERO), m_maxY(Liar::ZERO)
 	{
 	}
 
@@ -41,8 +40,6 @@ namespace Liar
 			m_cells = nullptr;
 		}
 
-		DisposeNavMesh();
-
 	}
 
 	void Map::Init()
@@ -57,8 +54,6 @@ namespace Liar
 		m_numberCell = 0;
 
 		m_minX = m_minY = m_maxX = m_maxY = Liar::ZERO;
-
-		m_navMesh = nullptr;
 	}
 
 	bool Map::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
@@ -71,26 +66,6 @@ namespace Liar
 			}
 		}
 		return false;
-	}
-
-	Liar::Vector2f** Map::FindPath(Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, Liar::Uint& count, bool CW)
-	{
-		if (!m_navMesh)
-		{
-			m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
-			m_navMesh->Set(m_cells, m_numberCell);
-		}
-		return m_navMesh->FindPath(startX, startY, endX, endY, count, CW);
-	}
-
-	void Map::DisposeNavMesh()
-	{
-		if (m_navMesh)
-		{
-			m_navMesh->~NavMesh();
-			free(m_navMesh);
-			m_navMesh = nullptr;
-		}
 	}
 
 	bool Map::InMap(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
@@ -376,7 +351,12 @@ namespace Liar
 			if (j == m_numberPolygon - 1) outfile << "]";
 			else outfile << "],";
 		}
-		m_navMesh->WriteErlang(outfile);
+
+		for (Liar::Uint i = 0; i < m_numberCell; ++i)
+		{
+			outfile << "\n";
+			m_cells[i]->WriteErlang(outfile);
+		}
 	}
 #endif
 }
