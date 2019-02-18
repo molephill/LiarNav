@@ -188,26 +188,16 @@ namespace Liar
 	{
 		Liar::NavMesh* navMesh = nullptr;
 
-		/*if (multNavMesh)
-		{
-			navMesh = multNavMesh;
-		}
-		else
-		{
-			if (!m_navMesh)
-			{
-				m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
-				m_navMesh->Init(nullptr);
-			}
-			navMesh = m_navMesh;
-		}*/
-
+#ifdef ShareFind
 		if (!m_navMesh)
 		{
 			m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
 			m_navMesh->Init(nullptr);
 		}
 		navMesh = m_navMesh;
+#else
+		navMesh = multNavMesh;
+#endif // ShareFind
 
 		Liar::Map* map = nullptr;
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
@@ -221,10 +211,6 @@ namespace Liar
 #ifdef EditorMod
 				navMesh->GetCrossInfo(m_crossList, m_crossCount);
 #endif // EditorMod
-#ifndef ShareFind
-				--m_curNavMeshIndex;
-#endif // ShareFind
-
 				return out;
 			}
 		}

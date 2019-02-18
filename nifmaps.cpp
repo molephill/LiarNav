@@ -182,8 +182,14 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 #endif // DEBUG_NIF
 	try
 	{
+		Liar::NavMesh* navMesh = nullptr;
+#ifndef ShareFind
+		navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
+		navMesh->Init(nullptr);
+#endif // 
+
 		Liar::Uint count = 0;
-		Liar::Vector2f** path = map->FindPath(startx, starty, endx, endy, count);
+		Liar::Vector2f** path = map->FindPath(startx, starty, endx, endy, count, navMesh);
 #ifdef DEBUG_NIF
 		sprintf_s(str, "path_count:%d", count);
 		Liar::MapSource::WriteLog(str);
@@ -200,6 +206,13 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 				res = enif_make_list_cell(env, enif_make_double(env, path[i]->GetX()), res);
 			}
 		}
+
+#ifndef ShareFind
+		navMesh->~NavMesh();
+		free(m_navMesh);
+		navMesh = nullptr;
+#endif // !ShareFind
+
 	}
 	catch (char *)
 	{
