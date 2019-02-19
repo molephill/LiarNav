@@ -209,7 +209,7 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 
 #ifndef ShareFind
 		navMesh->~NavMesh();
-		free(m_navMesh);
+		free(navMesh);
 		navMesh = nullptr;
 #endif // !ShareFind
 

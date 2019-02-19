@@ -123,6 +123,7 @@ namespace Liar
 		m_testCells = nullptr;
 		m_testCount = 0;
 		m_tmpClosetCell = nullptr;
+		m_pathSessionId = 0;
 #endif // !ShareFind
 
 		Set(map);
@@ -419,6 +420,7 @@ namespace Liar
 			}
 
 			free(cellPath);
+			cellPath = nullptr;
 			m_closeCount = 0;
 			free(m_closeList);
 			m_closeList = nullptr;

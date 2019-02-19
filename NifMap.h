@@ -29,8 +29,10 @@ namespace Liar
 		Liar::Map** m_mapList;
 		Liar::Uint m_mapcount;
 
+#ifdef ShareFind
 		// navMesh
 		Liar::NavMesh* m_navMesh;
+#endif // ShareFind
 
 #ifdef EditorMod
 		Liar::Cell** m_crossList;
@@ -43,7 +45,9 @@ namespace Liar
 		Liar::Polygon* CheckAutoAddPolygon(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int BuildMapByIndex(Liar::Uint, bool = true);
 		void CalcAllMapBound();
+#ifdef ShareFind
 		void DisposeNavMesh();
+#endif // ShareFind
 
 	public:
 		static bool ReadErlangCPType(ErlNifEnv*, ERL_NIF_TERM, NAVDTYPE&);

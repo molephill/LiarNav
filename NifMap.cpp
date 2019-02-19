@@ -49,7 +49,9 @@ namespace Liar
 			m_mapcount = 0;
 		}
 
+#ifdef ShareFind
 		DisposeNavMesh();
+#endif // ShareFind
 
 #ifdef EditorMod
 		if (m_crossList)
@@ -67,6 +69,7 @@ namespace Liar
 
 	}
 
+#ifdef ShareFind
 	void NifMap::DisposeNavMesh()
 	{
 		if (m_navMesh)
@@ -76,6 +79,8 @@ namespace Liar
 			m_navMesh = nullptr;
 		}
 	}
+#endif // ShareFind
+
 
 	// from erlang to nav_type
 	bool NifMap::ReadErlangCPType(ErlNifEnv* env, ERL_NIF_TERM term, NAVDTYPE& out)
@@ -157,10 +162,6 @@ namespace Liar
 
 #ifdef ShareFind
 		m_navMesh = nullptr;
-#else
-		m_navMeshes = nullptr;
-		m_curNavMeshIndex = 0;
-		m_totalNumNavMesh = 0;
 #endif // ShareFind
 
 #ifdef EditorMod
