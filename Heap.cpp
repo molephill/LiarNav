@@ -45,11 +45,11 @@ namespace Liar
 
 			int i = m_curNum;
 			int parent = i >> 1;
-			Cell* tmp = m_heap[i];
+			Liar::Cell* tmp = m_heap[i];
 
 			while (parent > 0)
 			{
-				Cell* v = m_heap[parent];
+				Liar::Cell* v = m_heap[parent];
 				if (Compare(tmp, v) > 0)
 				{
 					//printf("\n=====swap:%d\n", i);
@@ -77,7 +77,7 @@ namespace Liar
 	*
 	* @return The Heap's front item or nullptr if it is empty.
 	*/
-	Cell* Heap::Pop()
+	Liar::Cell* Heap::Pop()
 	{
 		if (m_curNum > 0)
 		{

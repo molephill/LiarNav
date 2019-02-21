@@ -18,6 +18,7 @@
 namespace Liar
 {
 	class Map;
+	class Cell;
 
 #ifdef EditorMod
 	class MAPSOURCE_API MapSource
@@ -36,6 +37,7 @@ namespace Liar
 		void Set(const Liar::Map*);
 		void Set(const Liar::MapSource&);
 		Liar::Vector2f* GetVertex(Liar::Uint) const;
+		Liar::Cell* GetCell(Liar::Uint) const;
 		void Dispose();
 
 #if defined(DEBUG_NIF) || defined(EditorMod)

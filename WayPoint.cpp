@@ -34,9 +34,10 @@ namespace Liar
 		m_lineBPointB = nullptr;
 	}
 
-	void WayPoint::Set(Liar::Cell* call, const Liar::Vector2f& vec)
+	void WayPoint::Init()
 	{
 		m_position = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		m_position->Set(Liar::ZERO, Liar::ZERO);
 
 		m_lineAPointA = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 		m_lineAPointB = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
@@ -47,6 +48,11 @@ namespace Liar
 		m_lineBPointA->Set(Liar::ZERO, Liar::ZERO);
 		m_lineBPointB->Set(Liar::ZERO, Liar::ZERO);
 
+		m_caller = nullptr;
+	}
+
+	void WayPoint::Set(Liar::Cell* call, const Liar::Vector2f& vec)
+	{
 		m_caller = call;
 		m_position->Set(vec);
 	}
@@ -84,7 +90,6 @@ namespace Liar
 	{
 		Liar::Vector2f& startPt = *m_position;
 		Liar::Cell* caller = m_caller;
-		//Liar::Cell* lastCell = caller;
 
 		Liar::Line2d* outSide = caller->GetSide(caller->arrivalWall);	//路径线在网格中的穿出边
 		Liar::Vector2f& lastPtA = outSide->GetPointA();
@@ -101,7 +106,11 @@ namespace Liar
 		int startIndex = 0, i = 0;
 		for (i = 0; i < cellCount; ++i)
 		{
+#ifdef ShareFind
 			if (caller == cellPath[i])
+#else
+			if(caller->Equals(*(cellPath[i])))
+#endif // ShareFind
 			{
 				startIndex = i;
 				break;
@@ -140,12 +149,12 @@ namespace Liar
 				testPtBY = pb.GetY();
 			}
 
-			Liar::PointClassification typeA_A = ClassifyPoint(*m_lineAPointA, *m_lineAPointB, testPtAX, testPtAY, rw, epsilon);
-			Liar::PointClassification typeA_B = ClassifyPoint(*m_lineAPointA, *m_lineAPointB, testPtBX, testPtBY, rw, epsilon);
-			Liar::PointClassification typeB_B = ClassifyPoint(*m_lineBPointA, *m_lineBPointB, testPtBX, testPtBY, rw, epsilon);
-			Liar::PointClassification typeB_A = ClassifyPoint(*m_lineBPointA, *m_lineBPointB, testPtAX, testPtAY, rw, epsilon);
+			Liar::PointClassification typeA_A = Liar::Line2d::ClassifyPoint(*m_lineAPointA, *m_lineAPointB, testPtAX, testPtAY, rw, epsilon);
+			Liar::PointClassification typeA_B = Liar::Line2d::ClassifyPoint(*m_lineAPointA, *m_lineAPointB, testPtBX, testPtBY, rw, epsilon);
+			Liar::PointClassification typeB_B = Liar::Line2d::ClassifyPoint(*m_lineBPointA, *m_lineBPointB, testPtBX, testPtBY, rw, epsilon);
+			Liar::PointClassification typeB_A = Liar::Line2d::ClassifyPoint(*m_lineBPointA, *m_lineBPointB, testPtAX, testPtAY, rw, epsilon);
 
-			if (Length(*m_lineAPointA, *m_lineAPointB) > epsilon && typeB_A == PointClassification::RIGHT_SIDE)
+			if (Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB) > epsilon && typeB_A == PointClassification::RIGHT_SIDE)
 			{
 				//路点
 				if (closeB > 0)
@@ -160,7 +169,7 @@ namespace Liar
 				}
 				return;
 			}
-			else if (Length(*m_lineBPointA, *m_lineBPointB) > epsilon && typeA_B == PointClassification::LEFT_SIDE)
+			else if (Liar::Line2d::Length(*m_lineBPointA, *m_lineBPointB) > epsilon && typeA_B == PointClassification::LEFT_SIDE)
 			{
 				//路点
 				if (closeA > 0)
@@ -177,7 +186,7 @@ namespace Liar
 			}
 			else if (typeA_A == Liar::PointClassification::ON_LINE && typeA_B == Liar::PointClassification::ON_LINE)	// 在同一条直线上(一条直线的起点和终点一样)
 			{
-				if (Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
+				if (Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
 				{
 					//lastCell = caller;
 					// 这里表明lastLineB是一条线，lastLineA是个点
@@ -196,7 +205,7 @@ namespace Liar
 						//setLineB = i;
 					}
 				}
-				else if (Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
+				else if (Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
 				{
 					//lastCell = caller;
 					// 这里表明lastLineA是一条线，lastLineB是个点
@@ -218,7 +227,7 @@ namespace Liar
 			}
 			else if (
 				(typeA_A != Liar::PointClassification::ON_LINE && typeA_A == Liar::PointClassification::RIGHT_SIDE) || 
-				(typeA_A == Liar::PointClassification::ON_LINE && Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
+				(typeA_A == Liar::PointClassification::ON_LINE && Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
 				)
 			{
 				//lastCell = caller;
@@ -231,7 +240,7 @@ namespace Liar
 			}
 			else if (
 				(typeB_B != Liar::PointClassification::ON_LINE && typeB_B == Liar::PointClassification::LEFT_SIDE) || 
-				(typeB_B == Liar::PointClassification::ON_LINE && Length(*m_lineBPointA, *m_lineBPointB) <= epsilon)
+				(typeB_B == Liar::PointClassification::ON_LINE && Liar::Line2d::Length(*m_lineBPointA, *m_lineBPointB) <= epsilon)
 				)
 			{
 				//lastCell = caller;
@@ -272,74 +281,5 @@ namespace Liar
 
 		m_caller = cellPath[cellCount - 1];
 		m_position->Set(endX, endY);
-	}
-
-	/**
-	* 直线长度
-	* @return
-	*/
-	Liar::NAVDTYPE WayPoint::Length(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB)
-	{
-		NAVDTYPE xdis = pointB.GetX() - pointA.GetX();
-		NAVDTYPE ydis = pointB.GetY() - pointA.GetY();
-		return sqrt(xdis*xdis + ydis * ydis);
-	}
-
-	Liar::PointClassification WayPoint::ClassifyPoint(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw, Liar::NAVDTYPE epsilon)
-	{
-		Liar::PointClassification result = Liar::PointClassification::ON_LINE;
-		Liar::NAVDTYPE distance = SignedDistance(pointA, pointB, x, y);
-		if (rw)
-		{
-			if (distance > epsilon)
-			{
-				result = Liar::PointClassification::RIGHT_SIDE;
-			}
-			else if (distance < -epsilon)
-			{
-				result = Liar::PointClassification::LEFT_SIDE;
-			}
-		}
-		else
-		{
-			if (distance > epsilon)
-			{
-				result = Liar::PointClassification::LEFT_SIDE;
-			}
-			else if (distance < -epsilon)
-			{
-				result = Liar::PointClassification::RIGHT_SIDE;
-			}
-		}
-		return result;
-	}
-
-	/**
-	* 给定点到直线的带符号距离，从a点朝向b点，右向为正，左向为负
-	*/
-	Liar::NAVDTYPE WayPoint::SignedDistance(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, Liar::NAVDTYPE x, Liar::NAVDTYPE y)
-	{
-		Liar::NAVDTYPE pointAX = pointA.GetX();
-		Liar::NAVDTYPE pointAY = pointA.GetY();
-		Liar::NAVDTYPE pointBX = pointB.GetX();
-		Liar::NAVDTYPE pointBY = pointB.GetY();
-
-		NAVDTYPE tmpx = x - pointAX;
-		NAVDTYPE tmpy = y - pointAY;
-
-		NAVDTYPE normalx = pointBX - pointAX;
-		NAVDTYPE normaly = pointBY - pointAY;
-		NAVDTYPE len = normalx * normalx + normaly * normaly;
-		len = sqrtf(len);
-		len = len == 0 ? 1 : len;
-		normalx /= len;
-		normaly /= len;
-
-		NAVDTYPE tmppx = normalx;
-		normalx = -normaly;
-		normaly = tmppx;
-
-		NAVDTYPE out = tmpx * normalx + tmpy * normaly;
-		return out;
 	}
 }

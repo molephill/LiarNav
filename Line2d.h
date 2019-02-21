@@ -37,13 +37,23 @@ namespace Liar
 		Liar::Uint GetPointAIndex() const { return m_pointIndexA; };
 		Liar::Uint GetPointBIndex() const { return m_pointIndexB; };
 		Liar::LineClassification Intersection(const Liar::Line2d&, Liar::Vector2f*);
-		Liar::PointClassification ClassifyPoint(const Liar::Vector2f& v, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
+		Liar::PointClassification ClassifyPoint(const Liar::Vector2f&, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
 		Liar::PointClassification ClassifyPoint(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
 		Liar::NAVDTYPE Length() const;
 		bool Equals(const Liar::Line2d&, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
 		bool Equals(const Liar::Vector2f&, const Liar::Vector2f&, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
 		bool Equals(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::NAVDTYPE = Liar::EPSILON) const;
 		void Dispose();
+
+		// static function
+		static Liar::PointClassification ClassifyPoint(const Liar::Line2d&, const Liar::Vector2f&, bool = true, Liar::NAVDTYPE = Liar::EPSILON);
+		static Liar::PointClassification ClassifyPoint(const Liar::Line2d&, Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::NAVDTYPE = Liar::EPSILON);
+		static Liar::PointClassification ClassifyPoint(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, bool = true, Liar::NAVDTYPE = Liar::EPSILON);
+		static Liar::PointClassification ClassifyPoint(const Liar::Vector2f&, const Liar::Vector2f&, Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::NAVDTYPE = Liar::EPSILON);
+		static Liar::NAVDTYPE SignedDistance(const Liar::Line2d&, Liar::NAVDTYPE, Liar::NAVDTYPE);
+		static Liar::NAVDTYPE SignedDistance(const Liar::Vector2f&, const Liar::Vector2f&, Liar::NAVDTYPE, Liar::NAVDTYPE);
+		static Liar::NAVDTYPE Length(const Liar::Line2d&);
+		static Liar::NAVDTYPE Length(const Liar::Vector2f&, const Liar::Vector2f&);
 
 	private:
 		Liar::NAVDTYPE SignedDistance(const Liar::Vector2f& v) const;

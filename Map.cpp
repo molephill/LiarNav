@@ -77,6 +77,8 @@ namespace Liar
 		return false;
 	}
 
+
+
 	void Map::CalcBound(Liar::Int index, bool force)
 	{
 		if (m_minX == Liar::ZERO && m_minY == Liar::ZERO && m_maxX == Liar::ZERO && m_maxY == Liar::ZERO)
@@ -103,10 +105,16 @@ namespace Liar
 		return m_vertexs[index];
 	}
 
-	Liar::Polygon* Map::GetPolygon(Liar::Uint index)
+	Liar::Polygon* Map::GetPolygon(Liar::Uint index) const
 	{
 		if (index >= m_numberPolygon) return nullptr;
 		return m_polygons[index];
+	}
+
+	Liar::Cell* Map::GetCell(Liar::Uint index) const
+	{
+		if (index >= m_numberCell) return nullptr;
+		return m_cells[index];
 	}
 
 	Liar::Uint Map::AddPolygon(Liar::Vector2f* v, Liar::Uint size)

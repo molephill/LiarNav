@@ -52,7 +52,9 @@ namespace Liar
 
 		Liar::Uint GetNumPolygon() const { return m_numberPolygon; };
 		Liar::Uint GetNumPoints() const { return m_numberVertex; };
-		Liar::Polygon* GetPolygon(Liar::Uint);
+		Liar::Polygon* GetPolygon(Liar::Uint) const;
+
+		Liar::Cell* GetCell(Liar::Uint) const;
 
 		void CalcBound(const Liar::Vector2f&);
 		void CalcBound(const Liar::Polygon&);

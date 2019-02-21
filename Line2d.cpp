@@ -84,8 +84,78 @@ namespace Liar
 
 	Liar::PointClassification Line2d::ClassifyPoint(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw, Liar::NAVDTYPE epsilon) const
 	{
+		return Liar::Line2d::ClassifyPoint(*this, x, y, rw, epsilon);
+	}
+
+	/**
+	* 给定点到直线的带符号距离，从a点朝向b点，右向为正，左向为负
+	*/
+	Liar::NAVDTYPE Line2d::SignedDistance(const Liar::Vector2f& v) const
+	{
+		return SignedDistance(v.GetX(), v.GetY());
+	}
+
+	Liar::NAVDTYPE Line2d::SignedDistance(Liar::NAVDTYPE x, Liar::NAVDTYPE y) const
+	{
+		return Liar::Line2d::SignedDistance(*this, x, y);
+	}
+
+	/**
+	* 直线长度
+	* @return
+	*/
+	Liar::NAVDTYPE Line2d::Length() const
+	{
+		return Liar::Line2d::Length(*this);
+	}
+
+	/**
+	* 线段是否相等 （忽略方向）
+	* @param line
+	* @return
+	*/
+	bool Line2d::Equals(const Liar::Line2d& rhs, bool ignoreDir, Liar::NAVDTYPE epsilon) const
+	{
+		return Equals(rhs.GetPointA(), rhs.GetPointB(), ignoreDir, epsilon);
+	}
+
+	bool Line2d::Equals(const Liar::Vector2f& pa, const Liar::Vector2f& pb, bool ignoreDir, Liar::NAVDTYPE epsilon) const
+	{
+		return Equals(pa.GetX(), pa.GetY(), pb.GetX(), pb.GetY(), ignoreDir, epsilon);
+	}
+
+	bool Line2d::Equals(Liar::NAVDTYPE ax, Liar::NAVDTYPE ay, Liar::NAVDTYPE bx, Liar::NAVDTYPE by, bool ignoreDir, Liar::NAVDTYPE epsilon) const
+	{
+		Liar::Vector2f& pointA = GetPointA();
+		Liar::Vector2f& pointB = GetPointB();
+		if (ignoreDir) return (pointA.Equals(ax, ay, epsilon) && pointB.Equals(bx, by, epsilon)) || (pointA.Equals(bx, by, epsilon) && pointB.Equals(ax, ay, epsilon));
+		else return pointA.Equals(ax, ay, epsilon) && pointB.Equals(bx, by, epsilon);
+	}
+
+	// static function
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Line2d& line2d, const Liar::Vector2f& point, bool isCW, Liar::NAVDTYPE eplision)
+	{
+		Liar::Vector2f& pa = line2d.GetPointA();
+		Liar::Vector2f& pb = line2d.GetPointB();
+		return Liar::Line2d::ClassifyPoint(pa, pb, point, isCW, eplision);
+	}
+
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Line2d& line2d, Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool isCW, Liar::NAVDTYPE eplision)
+	{
+		Liar::Vector2f& pa = line2d.GetPointA();
+		Liar::Vector2f& pb = line2d.GetPointB();
+		return Liar::Line2d::ClassifyPoint(pa, pb, x, y, isCW, eplision);
+	}
+
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, const Liar::Vector2f& point, bool isCW, Liar::NAVDTYPE epsilon)
+	{
+		return Liar::Line2d::ClassifyPoint(pointA, pointB, point.GetX(), point.GetY(), isCW, epsilon);
+	}
+
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw, Liar::NAVDTYPE epsilon)
+	{
 		Liar::PointClassification result = Liar::PointClassification::ON_LINE;
-		Liar::NAVDTYPE distance = SignedDistance(x, y);
+		Liar::NAVDTYPE distance = Liar::Line2d::SignedDistance(pointA, pointB, x, y);
 		if (rw)
 		{
 			if (distance > epsilon)
@@ -111,23 +181,19 @@ namespace Liar
 		return result;
 	}
 
-	/**
-	* 给定点到直线的带符号距离，从a点朝向b点，右向为正，左向为负
-	*/
-	Liar::NAVDTYPE Line2d::SignedDistance(const Liar::Vector2f& v) const
+	Liar::NAVDTYPE Line2d::SignedDistance(const Liar::Line2d& line, Liar::NAVDTYPE x, Liar::NAVDTYPE y)
 	{
-		return SignedDistance(v.GetX(), v.GetY());
+		Liar::Vector2f& pa = line.GetPointA();
+		Liar::Vector2f& pb = line.GetPointB();
+		return Liar::Line2d::SignedDistance(pa, pb, x, y);
 	}
 
-	Liar::NAVDTYPE Line2d::SignedDistance(Liar::NAVDTYPE x, Liar::NAVDTYPE y) const
+	Liar::NAVDTYPE Line2d::SignedDistance(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, Liar::NAVDTYPE x, Liar::NAVDTYPE y)
 	{
-		Liar::Vector2f* pointA = GetVertex(m_pointIndexA);
-		Liar::Vector2f* pointB = GetVertex(m_pointIndexB);
-
-		Liar::NAVDTYPE pointAX = pointA->GetX();
-		Liar::NAVDTYPE pointAY = pointA->GetY();
-		Liar::NAVDTYPE pointBX = pointB->GetX();
-		Liar::NAVDTYPE pointBY = pointB->GetY();
+		Liar::NAVDTYPE pointAX = pointA.GetX();
+		Liar::NAVDTYPE pointAY = pointA.GetY();
+		Liar::NAVDTYPE pointBX = pointB.GetX();
+		Liar::NAVDTYPE pointBY = pointB.GetY();
 
 		NAVDTYPE tmpx = x - pointAX;
 		NAVDTYPE tmpy = y - pointAY;
@@ -148,37 +214,17 @@ namespace Liar
 		return out;
 	}
 
-	/**
-	* 直线长度
-	* @return
-	*/
-	Liar::NAVDTYPE Line2d::Length() const
+	Liar::NAVDTYPE Line2d::Length(const Liar::Line2d& line)
 	{
-		NAVDTYPE xdis = GetPointB().GetX() - GetPointA().GetX();
-		NAVDTYPE ydis = GetPointB().GetY() - GetPointA().GetY();
+		Liar::Vector2f& pa = line.GetPointA();
+		Liar::Vector2f& pb = line.GetPointB();
+		return Liar::Line2d::Length(pa, pb);
+	}
+
+	Liar::NAVDTYPE Line2d::Length(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB)
+	{
+		NAVDTYPE xdis = pointB.GetX() - pointA.GetX();
+		NAVDTYPE ydis = pointB.GetY() - pointA.GetY();
 		return sqrt(xdis*xdis + ydis * ydis);
-	}
-
-	/**
-	* 线段是否相等 （忽略方向）
-	* @param line
-	* @return
-	*/
-	bool Line2d::Equals(const Liar::Line2d& rhs, bool ignoreDir, Liar::NAVDTYPE epsilon) const
-	{
-		return Equals(rhs.GetPointA(), rhs.GetPointB(), ignoreDir, epsilon);
-	}
-
-	bool Line2d::Equals(const Liar::Vector2f& pa, const Liar::Vector2f& pb, bool ignoreDir, Liar::NAVDTYPE epsilon) const
-	{
-		return Equals(pa.GetX(), pa.GetY(), pb.GetX(), pb.GetY(), ignoreDir, epsilon);
-	}
-
-	bool Line2d::Equals(Liar::NAVDTYPE ax, Liar::NAVDTYPE ay, Liar::NAVDTYPE bx, Liar::NAVDTYPE by, bool ignoreDir, Liar::NAVDTYPE epsilon) const
-	{
-		Liar::Vector2f& pointA = GetPointA();
-		Liar::Vector2f& pointB = GetPointB();
-		if (ignoreDir) return (pointA.Equals(ax, ay, epsilon) && pointB.Equals(bx, by, epsilon)) || (pointA.Equals(bx, by, epsilon) && pointB.Equals(ax, ay, epsilon));
-		else return pointA.Equals(ax, ay, epsilon) && pointB.Equals(bx, by, epsilon);
 	}
 }

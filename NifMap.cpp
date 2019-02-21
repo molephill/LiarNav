@@ -185,20 +185,16 @@ namespace Liar
 		return false;
 	}
 
-	Liar::Vector2f** NifMap::FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint& count, Liar::NavMesh* multNavMesh)
+	Liar::Vector2f** NifMap::FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint& count)
 	{
 		Liar::NavMesh* navMesh = nullptr;
 
-#ifdef ShareFind
 		if (!m_navMesh)
 		{
 			m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
 			m_navMesh->Init(nullptr);
 		}
-		navMesh = m_navMesh;
-#else
-		navMesh = multNavMesh;
-#endif // ShareFind
+		navMesh = m_navMesh;    
 
 		Liar::Map* map = nullptr;
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)

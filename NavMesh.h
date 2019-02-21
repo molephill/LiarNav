@@ -34,17 +34,17 @@ namespace Liar
 		Liar::Vector2f** m_path;
 		Liar::Uint m_numPath;
 
+		Liar::WayPoint* m_wayPoint;
+
+		Cell** m_crossList;
+		Liar::Uint m_crossCount;
+
 		static Liar::Uint PATHMAX;
 
 #ifdef FindNearest
 		Liar::Cell** m_nearstCells;
 		Liar::Uint m_nearstCount;
 #endif // FindNearest
-
-#ifdef EditorMod
-		Cell** m_crossList;
-		Liar::Uint m_crossCount;
-#endif // EditorMod
 
 #ifndef ShareFind
 		Liar::Cell** m_testCells;
@@ -66,7 +66,7 @@ namespace Liar
 		Liar::Cell* FindClosestCell(const Vector2f&, bool = true);
 		Liar::Cell* FindClosestCell(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true);
 		
-		Cell** GetCellPath(int&);
+		void GetCellPath();
 		
 		void AddCrossCell(Cell*);
 
@@ -95,6 +95,7 @@ namespace Liar
 
 		bool GetCrossVector2f(const Vector2f&, const Vector2f&, const Vector2f&, const Vector2f&, NAVDTYPE&, NAVDTYPE&);
 		void DisposePath();
+		void DisposeCross();
 
 #ifndef ShareFind
 		void DisposeTestCells();
@@ -107,7 +108,6 @@ namespace Liar
 
 #ifdef EditorMod
 	public:
-		void DisposeFindCtr();
 		void GetCrossInfo(Liar::Cell**, Liar::Uint&);
 #endif // EditorMod
 

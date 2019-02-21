@@ -31,6 +31,7 @@ namespace Liar
 		Liar::Cell* m_caller;
 
 	public:
+		void Init();
 		void Set(Liar::Cell*, const Liar::Vector2f&);
 		Liar::Vector2f& GetPos() const { return *m_position; };
 		Liar::Cell* GetCaller() const { return m_caller; };
@@ -40,14 +41,8 @@ namespace Liar
 		void GetFurthestWayPoint(Liar::Cell**, int, Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::NAVDTYPE = Liar::EPSILON);
 
 	private:
-
 		void SetLineA(const Liar::Vector2f&, const Liar::Vector2f&);
 		void SetLineB(const Liar::Vector2f&, const Liar::Vector2f&);
-
-		Liar::PointClassification ClassifyPoint(const Liar::Vector2f&, const Liar::Vector2f&, Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::NAVDTYPE = Liar::EPSILON);
-		Liar::NAVDTYPE SignedDistance(const Liar::Vector2f&, const Liar::Vector2f&, Liar::NAVDTYPE, Liar::NAVDTYPE);
-
-		Liar::NAVDTYPE Length(const Liar::Vector2f&, const Liar::Vector2f&);
 	};
 }
 

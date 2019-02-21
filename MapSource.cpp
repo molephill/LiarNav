@@ -33,6 +33,11 @@ namespace Liar
 		m_map = nullptr;
 	}
 
+	Liar::Cell* MapSource::GetCell(Liar::Uint index) const
+	{
+		return m_map->GetCell(index);
+	}
+
 #if defined(DEBUG_NIF) || defined(EditorMod)
 	void MapSource::WriteLog(const char* log, bool add, const char* logPath)
 	{

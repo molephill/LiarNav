@@ -56,7 +56,7 @@ namespace Liar
 		bool AddPologyMapByIndex(int, Liar::Vector2f*, Liar::Uint);
 		int BuildAll(bool = true);
 
-		Liar::Vector2f** FindPath(NAVDTYPE startx, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&, Liar::NavMesh* = nullptr);
+		Liar::Vector2f** FindPath(NAVDTYPE startx, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&);
 		bool CanWalk(NAVDTYPE, NAVDTYPE);
 
 		int BuildByList(ErlNifEnv*, ERL_NIF_TERM, bool = false);
