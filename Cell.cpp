@@ -52,14 +52,17 @@ namespace Liar
 		size_t blockSize = sizeof(Liar::Int) * 3;
 
 		if(init || !m_links) m_links = (Liar::Int*)malloc(blockSize);
-		memcpy(m_links, source.m_links, blockSize);
+		//memcpy(m_links, source.m_links, blockSize);
+		size_t i = 0;
+		for (i = 0; i < 3; ++i) m_links[i] = source.m_links[i];
 
 		if (init || !m_wallDistance)
 		{
 			blockSize = sizeof(Liar::NAVDTYPE) * 3;
 			m_wallDistance = (Liar::NAVDTYPE*)malloc(blockSize);
 		}
-		memcpy(m_wallDistance, source.m_wallDistance, blockSize);
+		//memcpy(m_wallDistance, source.m_wallDistance, blockSize);
+		for (i = 0; i < 3; ++i) m_wallDistance[i] = source.m_wallDistance[i];
 
 		m_index = source.m_index;
 		sessionId = source.sessionId;

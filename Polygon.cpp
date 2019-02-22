@@ -50,7 +50,8 @@ namespace Liar
 		{
 			size_t size = sizeof(Liar::NAVDTYPE) * 4;
 			m_rect = (Liar::NAVDTYPE*)malloc(size);
-			memcpy(m_rect, source.m_rect, size);
+			//memcpy(m_rect, source.m_rect, size);
+			for (size_t i = 0; i < 4; ++i) m_rect[i] = source.m_rect[i];
 		}
 
 		if (m_pointIndices)
@@ -63,7 +64,8 @@ namespace Liar
 		{
 			size_t size = sizeof(Liar::Uint)*m_numberPoints;
 			m_pointIndices = (Liar::Uint*)malloc(size);
-			memcpy(m_pointIndices, source.m_pointIndices, size);
+			//memcpy(m_pointIndices, source.m_pointIndices, size);
+			for (size_t i = 0; i < m_numberPoints; ++i) m_rect[i] = source.m_pointIndices[i];
 		}
 	}
 

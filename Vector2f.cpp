@@ -190,9 +190,11 @@ namespace Liar
 		return Liar::Vector2f(scale*rhs.m_x, scale*rhs.m_y);
 	}
 
+#if defined(DEBUG_NIF) || defined(EditorMod) || defined(_DEBUG)
 	std::ostream & operator<<(std::ostream & os, const Liar::Vector2f& rhs)
 	{
 		os << "(" << rhs.m_x << ", " << rhs.m_y << ")";
 		return os;
 	}
+#endif // DEBUG_NIF
 }

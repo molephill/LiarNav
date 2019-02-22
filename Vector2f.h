@@ -2,7 +2,11 @@
 #ifndef  __VECTOR2F_H__
 #define  __VECTOR2F_H__
 
+
+#if defined(DEBUG_NIF) || defined(EditorMod) || defined(_DEBUG)
 #include <iostream>
+#endif // DEBUG_NIF
+
 #include <math.h>
 
 #include "Define.h"
@@ -68,7 +72,9 @@ namespace Liar
 		Liar::NAVDTYPE GetY() const { return m_y; };
 
 		friend Liar::Vector2f operator*(const Liar::NAVDTYPE, const Liar::Vector2f&);
+#if defined(DEBUG_NIF) || defined(EditorMod) || defined(_DEBUG)
 		friend std::ostream& operator<<(std::ostream&, const Liar::Vector2f&);
+#endif // DEBUG_NIF
 
 	};
 }
