@@ -5,21 +5,23 @@ namespace Liar
 {
 //#define _DEBUG 1
 #define ShareFind 1
-#define EditorMod 1
+//#define EditorMod 1
 //#define DEBUG_NIF 1
 //#define UNION_POLYGON 1
 //#define UNIQUE_POINT 1
+//#define PRINT 1
 #define FindNearest 1
 #define OutFind 1
 #define PASS_FIRST 1
 
 	// data type
 	typedef float NAVDTYPE;
+	typedef double EPSILONTYPE;
 	typedef unsigned int Uint;
 	typedef int Int;
 
 	//
-	const static NAVDTYPE EPSILON = 0.0001f;
+	const static EPSILONTYPE EPSILON = 0.00001;
 	const static NAVDTYPE ZERO = 0.0f;
 
 	// define version

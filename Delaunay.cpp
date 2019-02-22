@@ -94,9 +94,10 @@ namespace Liar
 		const Liar::Vector2f& p1, const Liar::Vector2f& p2, Liar::Line2d** lineV, 
 		Liar::Int& tmpLineCount, Liar::Map& map, Liar::Uint paIndex, Liar::Uint pbIndex)
 	{
-		if (FindLinePos(p1, p2, m_line2ds, m_curNumLines) < 0)
+		int index = FindLinePos(p1, p2, m_line2ds, m_curNumLines);
+		if (index < 0)
 		{
-			int index = FindLinePos(p1, p2, lineV, tmpLineCount);
+			index = FindLinePos(p1, p2, lineV, tmpLineCount);
 			if (index > -1)
 			{
 				lineV = RemovePosLine(lineV, tmpLineCount, index);
@@ -127,11 +128,17 @@ namespace Liar
 		firstLine->Set(initEdge);
 		lineV[0] = firstLine;
 
-		Line2d* edge = (Line2d*)malloc(sizeof(Line2d));
+		Liar::Line2d* edge = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
 		edge->Set(initEdge);
 
-		Vector2f* interscetVector = (Vector2f*)malloc(sizeof(Vector2f));
+		Liar::Vector2f* interscetVector = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
 		interscetVector->Set(Liar::ZERO, Liar::ZERO);
+
+#ifdef PRINT
+		int index = 0;
+		const char* path = "C:/Users/Administrator/Desktop/new/build_trianges.txt";
+		std::ofstream outfile(path, std::ios::ate);
+#endif // PRINT
 
 		do
 		{
@@ -147,19 +154,36 @@ namespace Liar
 			Liar::Uint pointAIndex = edge->GetPointAIndex();
 			Liar::Uint pointBIndex = edge->GetPointBIndex();
 
+			Liar::Vector2f* p3 = map.GetVertex(p3Index);
+			Liar::Vector2f& pa = edge->GetPointA();
+			Liar::Vector2f& pb = edge->GetPointB();
+
+#ifdef PRINT
+			outfile << "index:" << index << ",tmplen:" << tmpLineCount << ",p3:{" << p3->GetX() << "," << p3->GetY() << "},pa:{" << pa.GetX() << "," << pa.GetY() << "},pb:{" << pb.GetX() << "," << pb.GetY() << "}\n";
+			outfile << "	tmpv:\n";
+			for (int tmpi = 0; tmpi < tmpLineCount; ++tmpi)
+			{
+				Line2d* tmpTT = lineV[tmpi];
+				outfile << "	tmp_index:" << tmpi << ",tmp_pa:{" << tmpTT->GetPointA().GetX() << "," << tmpTT->GetPointA().GetY() << "},tmp_pb:{" << tmpTT->GetPointB().GetX() << "," << tmpTT->GetPointB().GetY() << "}\n";
+			}
+
+			index++;
+#endif // PRINT
+
+
 			Liar::Cell* addTri = (Liar::Cell*)malloc(sizeof(Liar::Cell));
 			if(isCW) addTri->Set(&map, pointAIndex, pointBIndex, p3Index);
 			else addTri->Set(&map, p3Index, pointBIndex, pointAIndex);
 			map.AddNavMeshCell(addTri);
 
-			Liar::Vector2f* p3 = map.GetVertex(p3Index);
-			Liar::Vector2f& pa = edge->GetPointA();
-			Liar::Vector2f& pb = edge->GetPointB();
-
 			lineV = BuildTrianges(pa, *p3, lineV, tmpLineCount, map, pointAIndex, p3Index);
 			lineV = BuildTrianges(*p3, pb, lineV, tmpLineCount, map, p3Index, pointBIndex);
 
 		} while (tmpLineCount > 0);
+
+#ifdef PRINT
+		outfile.close();
+#endif // PRINT
 
 		edge->~Line2d();
 		free(edge);
@@ -226,7 +250,27 @@ namespace Liar
 				m_line2ds[pre + numPoints - 1]->Set(p1, p2);
 			}
 		}
+
+#ifdef PRINT
+		PrintEdges(map);
+#endif // PRINT
 	}
+
+#ifdef EditorMod
+	void Delaunay::PrintEdges(const Liar::Map& map)
+	{
+		const char* path = "C:/Users/Administrator/Desktop/new/polygon_edges.txt";
+		std::ofstream outfile(path, std::ios::ate);
+		for (Liar::Uint i = 0; i < m_curNumLines; ++i)
+		{
+			Liar::Line2d* tmpLine = m_line2ds[i];
+			Liar::Vector2f& pa = tmpLine->GetPointA();
+			Liar::Vector2f& pb = tmpLine->GetPointB();
+			outfile << i << ":" << "A:{" << pa.GetX() << "," << pa.GetY() << "},B:{" << pb.GetX() << "," << pb.GetY() << "}\n";
+		}
+		outfile.close();
+	}
+#endif // EditorMod
 
 	Liar::Line2d& Delaunay::GetBoundEdage(Liar::Map& map, bool isCW, Liar::Uint boundIndex)
 	{
@@ -388,25 +432,25 @@ namespace Liar
 		const Liar::Vector2f& otherPointA, const Liar::Vector2f& otherPointB,
 		Liar::Vector2f* pIntersectPoint)
 	{
-		Liar::NAVDTYPE pointAX = pointA.GetX();
-		Liar::NAVDTYPE pointAY = pointA.GetY();
-		Liar::NAVDTYPE pointBX = pointB.GetX();
-		Liar::NAVDTYPE pointBY = pointB.GetY();
-		Liar::NAVDTYPE otherPointAX = otherPointA.GetX();
-		Liar::NAVDTYPE otherPointAY = otherPointA.GetY();
-		Liar::NAVDTYPE otherPointBX = otherPointB.GetX();
-		Liar::NAVDTYPE ohterPointBY = otherPointB.GetY();
+		Liar::EPSILONTYPE pointAX = pointA.GetX();
+		Liar::EPSILONTYPE pointAY = pointA.GetY();
+		Liar::EPSILONTYPE pointBX = pointB.GetX();
+		Liar::EPSILONTYPE pointBY = pointB.GetY();
+		Liar::EPSILONTYPE otherPointAX = otherPointA.GetX();
+		Liar::EPSILONTYPE otherPointAY = otherPointA.GetY();
+		Liar::EPSILONTYPE otherPointBX = otherPointB.GetX();
+		Liar::EPSILONTYPE ohterPointBY = otherPointB.GetY();
 
-		Liar::NAVDTYPE denom =
+		Liar::EPSILONTYPE denom =
 			(ohterPointBY - otherPointAY)*(pointBX - pointAX)
 			-
 			(otherPointBX - otherPointAX)*(pointBY - pointAY);
 
-		Liar::NAVDTYPE u0 =
+		Liar::EPSILONTYPE u0 =
 			(otherPointBX - otherPointAX)*(pointAY - otherPointAY)
 			-
 			(ohterPointBY - otherPointAY)*(pointAX - otherPointAX);
-		Liar::NAVDTYPE u1 =
+		Liar::EPSILONTYPE u1 =
 			(otherPointAX - pointAX)*(pointBY - pointAY)
 			-
 			(otherPointAY - pointAY)*(pointBX - pointAX);
@@ -422,8 +466,8 @@ namespace Liar
 			u0 = u0 / denom;
 			u1 = u1 / denom;
 
-			Liar::NAVDTYPE x = pointAX + u0 * (pointBX - pointAX);
-			Liar::NAVDTYPE y = pointAY + u0 * (pointBY - pointAY);
+			Liar::EPSILONTYPE x = pointAX + u0 * (pointBX - pointAX);
+			Liar::EPSILONTYPE y = pointAY + u0 * (pointBY - pointAY);
 
 			if (pIntersectPoint) pIntersectPoint->Set(x, y);
 

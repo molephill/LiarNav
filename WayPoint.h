@@ -38,7 +38,7 @@ namespace Liar
 		void SetPos(const Liar::Vector2f&) const;
 		void SetPos(Liar::NAVDTYPE, Liar::NAVDTYPE) const;
 
-		void GetFurthestWayPoint(Liar::Cell**, int, Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::NAVDTYPE = Liar::EPSILON);
+		void GetFurthestWayPoint(Liar::Cell**, int, Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true, Liar::EPSILONTYPE = Liar::EPSILON);
 
 	private:
 		void SetLineA(const Liar::Vector2f&, const Liar::Vector2f&);

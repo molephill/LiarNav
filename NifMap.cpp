@@ -339,7 +339,7 @@ namespace Liar
 #if defined(DEBUG_NIF) || defined(EditorMod)
 	void NifMap::WriteErlang(const char* base)
 	{
-		char str[32];
+		char str[512];
 		if (!base)
 		{
 			sprintf_s(str, "%d.txt", m_bid);

@@ -183,7 +183,7 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 	try
 	{
 		Liar::Uint count = 0;
-		Liar::Vector2f** path = nullptr; // map->FindPath(startx, starty, endx, endy, count);
+		Liar::Vector2f** path = map->FindPath(startx, starty, endx, endy, count);
 		if (count > 0)
 		{
 			int lastIndex = 0;

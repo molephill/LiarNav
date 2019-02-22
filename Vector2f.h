@@ -40,8 +40,8 @@ namespace Liar
 		Liar::NAVDTYPE DistanceSqured(const Liar::Vector2f&) const;
 		Liar::NAVDTYPE DistanceSqured(Liar::NAVDTYPE, Liar::NAVDTYPE) const;
 		void Zero();
-		bool Equals(const Liar::Vector2f&, Liar::NAVDTYPE = Liar::EPSILON) const;
-		bool Equals(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE = Liar::EPSILON) const;
+		bool Equals(const Liar::Vector2f&, Liar::EPSILONTYPE = Liar::EPSILON) const;
+		bool Equals(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::EPSILONTYPE = Liar::EPSILON) const;
 		Liar::Vector2f operator-() const;
 		Liar::Vector2f operator-(const Liar::Vector2f&) const;
 		Liar::Vector2f operator+(const Liar::Vector2f&) const;

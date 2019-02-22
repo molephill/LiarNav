@@ -86,7 +86,7 @@ namespace Liar
 	* @param end жу╣Ц
 	* @return
 	*/
-	void WayPoint::GetFurthestWayPoint(Liar::Cell** cellPath, int cellCount, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, bool rw, Liar::NAVDTYPE epsilon)
+	void WayPoint::GetFurthestWayPoint(Liar::Cell** cellPath, int cellCount, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, bool rw, Liar::EPSILONTYPE epsilon)
 	{
 		Liar::Vector2f& startPt = *m_position;
 		Liar::Cell* caller = m_caller;

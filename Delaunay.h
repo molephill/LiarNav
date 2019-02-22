@@ -60,6 +60,11 @@ namespace Liar
 		static Liar::Line2d** RemovePosLine(Liar::Line2d** lv, int&, int pos);
 		static Liar::Int FindLinePos(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Line2d**, Liar::Uint);
 
+#ifdef EditorMod
+		static void PrintEdges(const Liar::Map&);
+#endif // EditorMod
+
+
 #ifdef UNION_POLYGON
 	private:
 		static int IntersectPoint(Liar::Map&, Liar::Uint&, Liar::Uint&, bool, bool = true);

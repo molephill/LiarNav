@@ -60,12 +60,12 @@ namespace Liar
 		m_x = m_y = Liar::ZERO;
 	}
 
-	bool Vector2f::Equals(const Vector2f& rhs, Liar::NAVDTYPE e) const
+	bool Vector2f::Equals(const Vector2f& rhs, Liar::EPSILONTYPE e) const
 	{
 		return Equals(rhs.m_x, rhs.m_y, e);
 	}
 
-	bool Vector2f::Equals(Liar::NAVDTYPE x, Liar::NAVDTYPE y, Liar::NAVDTYPE e) const
+	bool Vector2f::Equals(Liar::NAVDTYPE x, Liar::NAVDTYPE y, Liar::EPSILONTYPE e) const
 	{
 		return fabs(m_x - x) < e && fabs(m_y - y) < e;
 	}

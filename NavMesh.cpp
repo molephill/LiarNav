@@ -160,10 +160,7 @@ namespace Liar
 
 	Liar::Vector2f** NavMesh::FindPath(Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, Liar::Uint& outLen, bool rw)
 	{
-		if (m_isLock)
-		{
-			return nullptr;
-		}
+		if (m_isLock) return nullptr;
 		m_isLock = true;
 
 		if (m_numPath >= Liar::NavMesh::PATHMAX) DisposePath();

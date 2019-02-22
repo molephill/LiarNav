@@ -77,12 +77,12 @@ namespace Liar
 	* @param epsilon ¾«¶ÈÖµ
 	* @return
 	*/
-	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& v, bool rw, Liar::NAVDTYPE epsilon) const
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& v, bool rw, Liar::EPSILONTYPE epsilon) const
 	{
 		return ClassifyPoint(v.GetX(), v.GetY(), rw, epsilon);
 	}
 
-	Liar::PointClassification Line2d::ClassifyPoint(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw, Liar::NAVDTYPE epsilon) const
+	Liar::PointClassification Line2d::ClassifyPoint(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw, Liar::EPSILONTYPE epsilon) const
 	{
 		return Liar::Line2d::ClassifyPoint(*this, x, y, rw, epsilon);
 	}
@@ -114,17 +114,17 @@ namespace Liar
 	* @param line
 	* @return
 	*/
-	bool Line2d::Equals(const Liar::Line2d& rhs, bool ignoreDir, Liar::NAVDTYPE epsilon) const
+	bool Line2d::Equals(const Liar::Line2d& rhs, bool ignoreDir, Liar::EPSILONTYPE epsilon) const
 	{
 		return Equals(rhs.GetPointA(), rhs.GetPointB(), ignoreDir, epsilon);
 	}
 
-	bool Line2d::Equals(const Liar::Vector2f& pa, const Liar::Vector2f& pb, bool ignoreDir, Liar::NAVDTYPE epsilon) const
+	bool Line2d::Equals(const Liar::Vector2f& pa, const Liar::Vector2f& pb, bool ignoreDir, Liar::EPSILONTYPE epsilon) const
 	{
 		return Equals(pa.GetX(), pa.GetY(), pb.GetX(), pb.GetY(), ignoreDir, epsilon);
 	}
 
-	bool Line2d::Equals(Liar::NAVDTYPE ax, Liar::NAVDTYPE ay, Liar::NAVDTYPE bx, Liar::NAVDTYPE by, bool ignoreDir, Liar::NAVDTYPE epsilon) const
+	bool Line2d::Equals(Liar::NAVDTYPE ax, Liar::NAVDTYPE ay, Liar::NAVDTYPE bx, Liar::NAVDTYPE by, bool ignoreDir, Liar::EPSILONTYPE epsilon) const
 	{
 		Liar::Vector2f& pointA = GetPointA();
 		Liar::Vector2f& pointB = GetPointB();
@@ -133,26 +133,26 @@ namespace Liar
 	}
 
 	// static function
-	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Line2d& line2d, const Liar::Vector2f& point, bool isCW, Liar::NAVDTYPE eplision)
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Line2d& line2d, const Liar::Vector2f& point, bool isCW, Liar::EPSILONTYPE eplision)
 	{
 		Liar::Vector2f& pa = line2d.GetPointA();
 		Liar::Vector2f& pb = line2d.GetPointB();
 		return Liar::Line2d::ClassifyPoint(pa, pb, point, isCW, eplision);
 	}
 
-	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Line2d& line2d, Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool isCW, Liar::NAVDTYPE eplision)
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Line2d& line2d, Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool isCW, Liar::EPSILONTYPE eplision)
 	{
 		Liar::Vector2f& pa = line2d.GetPointA();
 		Liar::Vector2f& pb = line2d.GetPointB();
 		return Liar::Line2d::ClassifyPoint(pa, pb, x, y, isCW, eplision);
 	}
 
-	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, const Liar::Vector2f& point, bool isCW, Liar::NAVDTYPE epsilon)
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, const Liar::Vector2f& point, bool isCW, Liar::EPSILONTYPE epsilon)
 	{
 		return Liar::Line2d::ClassifyPoint(pointA, pointB, point.GetX(), point.GetY(), isCW, epsilon);
 	}
 
-	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw, Liar::NAVDTYPE epsilon)
+	Liar::PointClassification Line2d::ClassifyPoint(const Liar::Vector2f& pointA, const Liar::Vector2f& pointB, Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw, Liar::EPSILONTYPE epsilon)
 	{
 		Liar::PointClassification result = Liar::PointClassification::ON_LINE;
 		Liar::NAVDTYPE distance = Liar::Line2d::SignedDistance(pointA, pointB, x, y);
