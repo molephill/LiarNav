@@ -85,9 +85,13 @@ namespace Liar
 
 	void NavMesh::Dispose()
 	{
-		m_openList->~Heap();
-		free(m_openList);
-		m_openList = nullptr;
+		if (m_openList)
+		{
+			m_openList->~Heap();
+			free(m_openList);
+			m_openList = nullptr;
+		}
+
 		if (m_closeList)
 		{
 			free(m_closeList);
