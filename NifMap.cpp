@@ -2,32 +2,11 @@
 
 namespace Liar
 {
-#ifdef ShareFind
-#ifdef EditorMod
 	NifMap::NifMap() :
 		m_bid(0),
 		m_mapList(nullptr), m_mapcount(0),
-		m_navMesh(nullptr),
-		m_crossList(nullptr), m_crossCount(0)
-#else
-	NifMap::NifMap() :
-		m_bid(0),
-		m_mapList(nullptr), m_mapcount(0),
+		m_isLocked(false),
 		m_navMesh(nullptr)
-#endif // EditorMod
-#else
-#ifdef EditorMod
-	NifMap::NifMap() :
-		m_bid(0),
-		m_mapList(nullptr), m_mapcount(0),
-		m_crossList(nullptr), m_crossCount(0)
-#else
-	NifMap::NifMap() :
-		m_bid(0),
-		m_mapList(nullptr), m_mapcount(0)
-#endif // EditorMod
-#endif // ShareFind
-
 	{
 	}
 
@@ -49,27 +28,9 @@ namespace Liar
 			m_mapcount = 0;
 		}
 
-#ifdef ShareFind
 		DisposeNavMesh();
-#endif // ShareFind
-
-#ifdef EditorMod
-		if (m_crossList)
-		{
-			for (i = 0; i < m_crossCount; ++i)
-			{
-				m_crossList[i]->~Cell();
-				free(m_crossList[i]);
-				m_crossList[i] = nullptr;
-			}
-			free(m_crossList);
-			m_crossList = nullptr;
-		}
-#endif // EditorMod
-
 	}
 
-#ifdef ShareFind
 	void NifMap::DisposeNavMesh()
 	{
 		if (m_navMesh)
@@ -79,8 +40,6 @@ namespace Liar
 			m_navMesh = nullptr;
 		}
 	}
-#endif // ShareFind
-
 
 	// from erlang to nav_type
 	bool NifMap::ReadErlangCPType(ErlNifEnv* env, ERL_NIF_TERM term, NAVDTYPE& out)
@@ -159,16 +118,10 @@ namespace Liar
 		m_mapcount = 0;
 		m_bid = bid;
 		m_mapList = nullptr;
+		m_isLocked = false;
 
-#ifdef ShareFind
-		m_navMesh = nullptr;
-#endif // ShareFind
-
-#ifdef EditorMod
-		m_crossList = nullptr;
-		m_crossCount = 0;
-#endif // EditorMod
-
+		m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
+		m_navMesh->Init(nullptr);
 	}
 
 	bool NifMap::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
@@ -187,14 +140,8 @@ namespace Liar
 
 	Liar::Vector2f** NifMap::FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint& count)
 	{
-		Liar::NavMesh* navMesh = nullptr;
-
-		if (!m_navMesh)
-		{
-			m_navMesh = (Liar::NavMesh*)malloc(sizeof(Liar::NavMesh));
-			m_navMesh->Init(nullptr);
-		}
-		navMesh = m_navMesh;    
+		if (m_isLocked) return nullptr;
+		m_isLocked = true;
 
 		Liar::Map* map = nullptr;
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
@@ -202,11 +149,10 @@ namespace Liar
 			map = m_mapList[i];
 			if (map->InMap(startX, startY) && map->InMap(endX, endY))
 			{
-				navMesh->Set(map);
-				Liar::Vector2f** out = navMesh->FindPath(startX, startY, endX, endY, count);
-				navMesh->SetLock(false);
+				m_navMesh->Set(map);
+				Liar::Vector2f** out = m_navMesh->FindPath(startX, startY, endX, endY, count);
 #ifdef EditorMod
-				navMesh->GetCrossInfo(m_crossList, m_crossCount);
+				m_isLocked = false;
 #endif // EditorMod
 				return out;
 			}

@@ -4,7 +4,7 @@
 namespace Liar
 {
 //#define _DEBUG 1
-#define ShareFind 1
+//#define ShareFind 1
 //#define EditorMod 1
 //#define DEBUG_NIF 1
 //#define UNION_POLYGON 1

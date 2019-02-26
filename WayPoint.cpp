@@ -79,6 +79,16 @@ namespace Liar
 		m_lineBPointB->Set(pb);
 	}
 
+	Liar::NAVDTYPE WayPoint::GetLineALength() const
+	{
+		return Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB);
+	}
+
+	Liar::NAVDTYPE WayPoint::GetLineBLength() const
+	{
+		return Liar::Line2d::Length(*m_lineBPointA, *m_lineBPointB);
+	}
+
 	/**
 	* 下一个拐点
 	* @param wayPoint 当前所在路点
@@ -106,11 +116,7 @@ namespace Liar
 		int startIndex = 0, i = 0;
 		for (i = 0; i < cellCount; ++i)
 		{
-#ifdef ShareFind
 			if (caller == cellPath[i])
-#else
-			if(caller->Equals(*(cellPath[i])))
-#endif // ShareFind
 			{
 				startIndex = i;
 				break;
@@ -154,7 +160,10 @@ namespace Liar
 			Liar::PointClassification typeB_B = Liar::Line2d::ClassifyPoint(*m_lineBPointA, *m_lineBPointB, testPtBX, testPtBY, rw, epsilon);
 			Liar::PointClassification typeB_A = Liar::Line2d::ClassifyPoint(*m_lineBPointA, *m_lineBPointB, testPtAX, testPtAY, rw, epsilon);
 
-			if (Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB) > epsilon && typeB_A == PointClassification::RIGHT_SIDE)
+			Liar::NAVDTYPE laLength = GetLineALength();
+			Liar::NAVDTYPE lbLength = GetLineBLength();
+
+			if (laLength > epsilon && typeB_A == Liar::PointClassification::RIGHT_SIDE)
 			{
 				//路点
 				if (closeB > 0)
@@ -169,7 +178,7 @@ namespace Liar
 				}
 				return;
 			}
-			else if (Liar::Line2d::Length(*m_lineBPointA, *m_lineBPointB) > epsilon && typeA_B == PointClassification::LEFT_SIDE)
+			else if (lbLength > epsilon && typeA_B == Liar::PointClassification::LEFT_SIDE)
 			{
 				//路点
 				if (closeA > 0)
@@ -186,7 +195,7 @@ namespace Liar
 			}
 			else if (typeA_A == Liar::PointClassification::ON_LINE && typeA_B == Liar::PointClassification::ON_LINE)	// 在同一条直线上(一条直线的起点和终点一样)
 			{
-				if (Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
+				if (laLength <= epsilon)
 				{
 					//lastCell = caller;
 					// 这里表明lastLineB是一条线，lastLineA是个点
@@ -205,7 +214,7 @@ namespace Liar
 						//setLineB = i;
 					}
 				}
-				else if (Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
+				else if (lbLength <= epsilon)
 				{
 					//lastCell = caller;
 					// 这里表明lastLineA是一条线，lastLineB是个点
@@ -227,7 +236,7 @@ namespace Liar
 			}
 			else if (
 				(typeA_A != Liar::PointClassification::ON_LINE && typeA_A == Liar::PointClassification::RIGHT_SIDE) || 
-				(typeA_A == Liar::PointClassification::ON_LINE && Liar::Line2d::Length(*m_lineAPointA, *m_lineAPointB) <= epsilon)
+				(typeA_A == Liar::PointClassification::ON_LINE && laLength <= epsilon)
 				)
 			{
 				//lastCell = caller;
@@ -240,7 +249,7 @@ namespace Liar
 			}
 			else if (
 				(typeB_B != Liar::PointClassification::ON_LINE && typeB_B == Liar::PointClassification::LEFT_SIDE) || 
-				(typeB_B == Liar::PointClassification::ON_LINE && Liar::Line2d::Length(*m_lineBPointA, *m_lineBPointB) <= epsilon)
+				(typeB_B == Liar::PointClassification::ON_LINE && lbLength <= epsilon)
 				)
 			{
 				//lastCell = caller;
@@ -252,9 +261,9 @@ namespace Liar
 				closeBPoint = nullptr;
 
 			}
-			else if (typeB_B == PointClassification::RIGHT_SIDE || typeA_A == PointClassification::LEFT_SIDE)
+			else if (typeB_B == Liar::PointClassification::RIGHT_SIDE || typeA_A == Liar::PointClassification::LEFT_SIDE)
 			{
-				if (typeB_B == PointClassification::RIGHT_SIDE)
+				if (typeB_B == Liar::PointClassification::RIGHT_SIDE)
 				{
 					// B遇到过障碍物了
 					if (closeB <= 0)
@@ -265,7 +274,7 @@ namespace Liar
 					}
 				}
 
-				if (typeA_A == PointClassification::LEFT_SIDE)
+				if (typeA_A == Liar::PointClassification::LEFT_SIDE)
 				{
 					// A遇到过障碍物了
 					if (closeA <= 0)

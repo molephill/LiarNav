@@ -1,52 +1,80 @@
-#include "NavMesh.h"
+ï»¿#include "NavMesh.h"
 #include "Map.h"
 
 namespace Liar
 {
+#ifdef EditorMod
 #ifdef ShareFind
 #ifdef FindNearest
 	NavMesh::NavMesh(const Liar::Map* map) :
 		Liar::MapSource(map),
-		m_isLock(false),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
 		m_path(nullptr), m_numPath(0),
 		m_wayPoint(nullptr),
 		m_crossList(nullptr), m_crossCount(0),
 		m_nearstCells(nullptr), m_nearstCount(0)
 #else
-	NavMesh::NavMesh() :
+	NavMesh::NavMesh(const Liar::Map* map) :
 		Liar::MapSource(map),
-		m_isLock(false),
-		m_cells(nullptr), m_numberCell(0),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
 		m_path(nullptr), m_numPath(0),
 		m_wayPoint(nullptr),
-		m_crossList(null), m_crossCount(0)
+		m_crossList(nullptr), m_crossCount(0)
 #endif // FindNearest
 #else
 #ifdef FindNearest
 	NavMesh::NavMesh(const Liar::Map* map) :
 		Liar::MapSource(map),
-		m_isLock(false),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
-		m_path(nullptr), m_numPath(0),
 		m_wayPoint(nullptr),
 		m_crossList(nullptr), m_crossCount(0),
 		m_nearstCells(nullptr), m_nearstCount(0),
-		m_testCells(nullptr), m_testCount(0),
-		m_tmpClosetCell(nullptr), m_pathSessionId(0)
+		m_pathsession(0)
 #else
 	NavMesh::NavMesh(const Liar::Map* map) :
 		Liar::MapSource(map),
-		m_isLock(false),
 		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
 		m_path(nullptr), m_numPath(0),
 		m_wayPoint(nullptr),
 		m_crossList(nullptr), m_crossCount(0),
-		m_testCells(nullptr), m_testCount(0),
-		m_tmpClosetCell(nullptr), m_pathSessionId(0)
+		m_pathsession(0)
 #endif // FindNearest
 #endif // ShareFind
+#else
+#ifdef ShareFind
+#ifdef FindNearest
+	NavMesh::NavMesh(const Liar::Map* map) :
+		Liar::MapSource(map),
+		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_path(nullptr), m_numPath(0),
+		m_wayPoint(nullptr),
+		m_nearstCells(nullptr), m_nearstCount(0)
+#else
+	NavMesh::NavMesh(const Liar::Map* map) :
+		Liar::MapSource(map),
+		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_path(nullptr), m_numPath(0),
+		m_wayPoint(nullptr)
+#endif // FindNearest
+#else
+#ifdef FindNearest
+	NavMesh::NavMesh(const Liar::Map* map) :
+		Liar::MapSource(map),
+		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_wayPoint(nullptr),
+		m_nearstCells(nullptr), m_nearstCount(0),
+		m_pathsession(0)
+#else
+	NavMesh::NavMesh(const Liar::Map* map) :
+		Liar::MapSource(map),
+		m_openList((Heap*)malloc(sizeof(Heap))), m_closeList(nullptr), m_closeCount(0),
+		m_path(nullptr), m_numPath(0),
+		m_wayPoint(nullptr)
+		m_pathsession(0)
+#endif // FindNearest
+#endif // ShareFind
+#endif // EditorMod
+
 	{
 	}
 
@@ -74,46 +102,16 @@ namespace Liar
 		}
 
 		DisposePath();
+#ifdef EditorMod
 		DisposeCross();
-
-#ifndef ShareFind
-		DisposeTestCells();
-
-		if (m_tmpClosetCell)
-		{
-			m_tmpClosetCell->~Cell();
-			free(m_tmpClosetCell);
-			m_tmpClosetCell = nullptr;
-		}
-
-#endif // !ShareFind
-
+#endif // EditorMod
 	}
-
-#ifndef ShareFind
-	void NavMesh::DisposeTestCells()
-	{
-		if (m_testCells)
-		{
-			for (Liar::Uint i = 0; i < m_testCount; ++i)
-			{
-				m_testCells[i]->~Cell();
-				free(m_testCells[i]);
-				m_testCells[i] = nullptr;
-			}
-			free(m_testCells);
-		}
-		m_testCount = 0;
-	}
-#endif // !ShareFind
-
 
 	void NavMesh::Init(const Liar::Map* map)
 	{
-		m_isLock = false;
+		Liar::MapSource::Set(map);
 
-		m_openList = (Heap*)malloc(sizeof(Heap));
-		m_openList->Init();
+		m_openList = nullptr;
 
 		m_closeList = nullptr;
 		m_closeCount = 0;
@@ -123,55 +121,50 @@ namespace Liar
 
 		m_wayPoint = nullptr;
 
+#ifdef EditorMod
 		m_crossList = nullptr;
 		m_crossCount = 0;
+#endif // EditorMod
+
+		m_pathsession = 0;
 
 #ifdef FindNearest
 		m_nearstCells = nullptr;
 		m_nearstCount = 0;
 #endif // FindNearest
-
-#ifndef ShareFind
-		m_testCells = nullptr;
-		m_testCount = 0;
-		m_tmpClosetCell = nullptr;
-		m_pathSessionId = 0;
-#endif // !ShareFind
-
-		Set(map);
 	}
 
 	void NavMesh::Set(const Liar::Map* map)
 	{
-#ifndef ShareFind
-		if (!map || m_map != map) DisposeTestCells();
-#endif // !ShareFind
+		if (map != m_map)
+		{
+			if (m_openList)
+			{
+				m_openList->~Heap();
+				free(m_openList);
+				m_openList = nullptr;
+			}
+			m_openList = (Liar::Heap*)malloc(sizeof(Liar::Heap));
+			m_openList->Set(map->GetCellCount());
+		}
 		Liar::MapSource::Set(map);
-		if(map) m_openList->Set(map->GetCellCount());
 	}
-
-#ifdef EditorMod
-	void NavMesh::GetCrossInfo(Liar::Cell** cross, Liar::Uint& count)
-	{
-		cross = m_crossList;
-		count = m_crossCount;
-	}
-#endif // EditorMod
 
 	Liar::Vector2f** NavMesh::FindPath(Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, Liar::Uint& outLen, bool rw)
 	{
-		if (m_isLock) return nullptr;
-		m_isLock = true;
-
 		if (m_numPath >= Liar::NavMesh::PATHMAX) DisposePath();
 
+		outLen = 0;
+
 		// release cross;
+#ifdef EditorMod
 		DisposeCross();
+#endif // EditorMod
 
 #ifdef ShareFind
-		++NavMesh::PATHSESSIONID;
+		++Liar::NavMesh::PATHSESSIONID;
 #else
-		++m_pathSessionId;
+		++m_pathsession;
 #endif // ShareFind
 
 		Liar::Cell* startCell = FindClosestCell(startX, startY, rw);
@@ -190,120 +183,111 @@ namespace Liar
 		}
 #endif // OutFind
 
-#ifdef ShareFind
+#ifdef FindNearest
 		if (startCell == endCell || TestOneLine2D(startX, startY, endX, endY, startCell, endCell))
 #else
-		if (startCell->Equals(*endCell) || TestOneLine2D(startX, startY, endX, endY, startCell, endCell))
-#endif // ShareFind
+		if (startCell == endCell)
+#endif // FindNearest
 		{
 			AddPathPoint(startX, startY, outLen);
 			AddPathPoint(endX, endY, outLen);
-			return m_path;
 		}
 		else
 		{
-			return BuildPath(startCell, startX, startY, endCell, endX, endY, outLen, rw);
+			BuildPath(startCell, startX, startY, endCell, endX, endY, outLen, rw);
 		}
+		return m_path;
 	}
 
 	/**
-	* ¹¹½¨Â·¾¶
+	* æ„å»ºè·¯å¾„
 	* @param startCell
 	* @param startPos
 	* @param endCell
 	* @param endPos
-	* @return PointÂ·¾¶Êı×é
+	* @return Pointè·¯å¾„æ•°ç»„
 	*/
-	Liar::Vector2f** NavMesh::BuildPath(
+	void NavMesh::BuildPath(
 		Liar::Cell* startCell, const Liar::Vector2f& startPos,
 		Liar::Cell* endCell, const Liar::Vector2f& endPos, 
 		Liar::Uint& outLen, bool rw)
 	{
-		return BuildPath(startCell, startPos.GetX(), startPos.GetY(), endCell, endPos.GetX(), endPos.GetY(), outLen, rw);
+		BuildPath(startCell, startPos.GetX(), startPos.GetY(), endCell, endPos.GetX(), endPos.GetY(), outLen, rw);
 	}
 
-	Liar::Vector2f** NavMesh::BuildPath(
+	void NavMesh::BuildPath(
 		Liar::Cell* startCell, Liar::NAVDTYPE startX, Liar::NAVDTYPE startY,
 		Liar::Cell* endCell, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, 
 		Liar::Uint& outLen, bool rw)
 	{
+		int SESSIONID = 0;
+#ifdef ShareFind
+		SESSIONID = Liar::NavMesh::PATHSESSIONID;
+#else
+		SESSIONID = m_pathsession;
+#endif // ShareFind
 		m_openList->Clear();
 		m_openList->Push(endCell);
 		endCell->f = 0;
 		endCell->h = 0;
 		endCell->isOpen = false;
 		endCell->parent = nullptr;
+		endCell->sessionId = SESSIONID;
 
-#ifdef ShareFind
-		endCell->sessionId = Liar::NavMesh::PATHSESSIONID;
-#else
-		endCell->sessionId = m_pathSessionId;
-#endif // ShareFind
-
-		bool foundPath = false;			//ÊÇ·ñÕÒµ½Â·¾¶
-		Liar::Cell* currNode = nullptr;		//µ±Ç°½Úµã
-		Liar::Cell* adjacentTmp = nullptr;	//µ±Ç°½ÚµãµÄÁÚ½ÓÈı½ÇĞÍ
-		Liar::Cell* sourceAdjacentTmp = nullptr;
-		Liar::Cell** cells = m_map->GetCells();
+		bool foundPath = false;			//æ˜¯å¦æ‰¾åˆ°è·¯å¾„
+		Cell* currNode = nullptr;		//å½“å‰èŠ‚ç‚¹
+		Cell* adjacentTmp = nullptr;	//å½“å‰èŠ‚ç‚¹çš„é‚»æ¥ä¸‰è§’å‹
+		Cell* sourceAdjacentTmp = nullptr;
 
 		while (m_openList->Size())
 		{
-			// 1. °Ñµ±Ç°½Úµã´Ó¿ª·ÅÁĞ±íÉ¾³ı, ¼ÓÈëµ½·â±ÕÁĞ±í
+			// 1. æŠŠå½“å‰èŠ‚ç‚¹ä»å¼€æ”¾åˆ—è¡¨åˆ é™¤, åŠ å…¥åˆ°å°é—­åˆ—è¡¨
 			currNode = m_openList->Pop();
 			++m_closeCount;
-			size_t blockSize = sizeof(Liar::Cell*)*m_closeCount;
-			if (m_closeList) m_closeList = (Liar::Cell**)realloc(m_closeList, blockSize);
-			else m_closeList = (Liar::Cell**)malloc(blockSize);
+			if (m_closeList) m_closeList = (Liar::Cell**)realloc(m_closeList, sizeof(Liar::Cell*)*m_closeCount);
+			else m_closeList = (Liar::Cell**)malloc(sizeof(Liar::Cell*)*m_closeCount);
 			m_closeList[m_closeCount - 1] = currNode;
 
-#ifdef ShareFind
 			if (currNode == startCell)
-#else
-			if (currNode->Equals(*startCell))
-#endif // ShareFind
 			{
 				foundPath = true;
 				break;
 			}
 
-			// 2. ¶Ôµ±Ç°½ÚµãÏàÁÚµÄÃ¿Ò»¸ö½ÚµãÒÀ´ÎÖ´ĞĞÒÔÏÂ²½Öè:
-			//ËùÓĞÁÚ½ÓÈı½ÇĞÍ
+			// 2. å¯¹å½“å‰èŠ‚ç‚¹ç›¸é‚»çš„æ¯ä¸€ä¸ªèŠ‚ç‚¹ä¾æ¬¡æ‰§è¡Œä»¥ä¸‹æ­¥éª¤:
+			//æ‰€æœ‰é‚»æ¥ä¸‰è§’å‹
 			int adjacentId = 0;
 			for (int i = 0; i < 3; ++i)
 			{
 				adjacentId = currNode->GetLink(i);
-				// 3. Èç¹û¸ÃÏàÁÚ½Úµã²»¿ÉÍ¨ĞĞ»òÕß¸ÃÏàÁÚ½ÚµãÒÑ¾­ÔÚ·â±ÕÁĞ±íÖĞ,
-				//    ÔòÊ²Ã´²Ù×÷Ò²²»Ö´ĞĞ,¼ÌĞø¼ìÑéÏÂÒ»¸ö½Úµã;
-
-				if (adjacentId < 0) continue; //²»ÄÜÍ¨¹ı
-				else sourceAdjacentTmp = cells[adjacentId];
+				// 3. å¦‚æœè¯¥ç›¸é‚»èŠ‚ç‚¹ä¸å¯é€šè¡Œæˆ–è€…è¯¥ç›¸é‚»èŠ‚ç‚¹å·²ç»åœ¨å°é—­åˆ—è¡¨ä¸­,
+				//    åˆ™ä»€ä¹ˆæ“ä½œä¹Ÿä¸æ‰§è¡Œ,ç»§ç»­æ£€éªŒä¸‹ä¸€ä¸ªèŠ‚ç‚¹;
+				if (adjacentId < 0)		//ä¸èƒ½é€šè¿‡
+				{
+					continue;
+				}
+				else
+				{
+					sourceAdjacentTmp = m_map->GetCell(adjacentId);
+				}
 
 				if (sourceAdjacentTmp)
 				{
-
-#ifdef ShareFind
 					adjacentTmp = sourceAdjacentTmp;
-					if (adjacentTmp->sessionId != NavMesh::PATHSESSIONID)
+
+					if (adjacentTmp->sessionId != SESSIONID)
 					{
-						// 4. Èç¹û¸ÃÏàÁÚ½Úµã²»ÔÚ¿ª·ÅÁĞ±íÖĞ,Ôò½«¸Ã½ÚµãÌí¼Óµ½¿ª·ÅÁĞ±íÖĞ, 
-						//    ²¢½«¸ÃÏàÁÚ½ÚµãµÄ¸¸½ÚµãÉèÎªµ±Ç°½Úµã,Í¬Ê±±£´æ¸ÃÏàÁÚ½ÚµãµÄGºÍFÖµ;
-						adjacentTmp->sessionId = NavMesh::PATHSESSIONID;
-#else
-					adjacentTmp = AddTestCell(sourceAdjacentTmp);
-					if (adjacentTmp->sessionId != m_pathSessionId)
-					{
-						// 4. Èç¹û¸ÃÏàÁÚ½Úµã²»ÔÚ¿ª·ÅÁĞ±íÖĞ,Ôò½«¸Ã½ÚµãÌí¼Óµ½¿ª·ÅÁĞ±íÖĞ, 
-						//    ²¢½«¸ÃÏàÁÚ½ÚµãµÄ¸¸½ÚµãÉèÎªµ±Ç°½Úµã,Í¬Ê±±£´æ¸ÃÏàÁÚ½ÚµãµÄGºÍFÖµ;
-						adjacentTmp->sessionId = m_pathSessionId;
-#endif // ShareFind
+						// 4. å¦‚æœè¯¥ç›¸é‚»èŠ‚ç‚¹ä¸åœ¨å¼€æ”¾åˆ—è¡¨ä¸­,åˆ™å°†è¯¥èŠ‚ç‚¹æ·»åŠ åˆ°å¼€æ”¾åˆ—è¡¨ä¸­, 
+						//    å¹¶å°†è¯¥ç›¸é‚»èŠ‚ç‚¹çš„çˆ¶èŠ‚ç‚¹è®¾ä¸ºå½“å‰èŠ‚ç‚¹,åŒæ—¶ä¿å­˜è¯¥ç›¸é‚»èŠ‚ç‚¹çš„Gå’ŒFå€¼;
+						adjacentTmp->sessionId = SESSIONID;
 						adjacentTmp->parent = currNode;
 						adjacentTmp->isOpen = true;
 
-						//HºÍFÖµ
+						//Hå’ŒFå€¼
 						adjacentTmp->ComputeHeuristic(startX, startY);
 						adjacentTmp->f = currNode->f + adjacentTmp->GetWallDistance(abs(i - currNode->arrivalWall));
 
-						//·ÅÈë¿ª·ÅÁĞ±í²¢ÅÅĞò
+						//æ”¾å…¥å¼€æ”¾åˆ—è¡¨å¹¶æ’åº
 						m_openList->Push(adjacentTmp);
 
 						// remember the side this caller is entering from
@@ -315,10 +299,10 @@ namespace Liar
 					}
 					else
 					{
-						// 5. Èç¹û¸ÃÏàÁÚ½ÚµãÔÚ¿ª·ÅÁĞ±íÖĞ, 
-						//    ÔòÅĞ¶ÏÈô¾­ÓÉµ±Ç°½Úµãµ½´ï¸ÃÏàÁÚ½ÚµãµÄGÖµÊÇ·ñĞ¡ÓÚÔ­À´±£´æµÄGÖµ,
-						//    ÈôĞ¡ÓÚ,Ôò½«¸ÃÏàÁÚ½ÚµãµÄ¸¸½ÚµãÉèÎªµ±Ç°½Úµã,²¢ÖØĞÂÉèÖÃ¸ÃÏàÁÚ½ÚµãµÄGºÍFÖµ
-						if (adjacentTmp->isOpen)	//ÒÑ¾­ÔÚopenListÖĞ
+						// 5. å¦‚æœè¯¥ç›¸é‚»èŠ‚ç‚¹åœ¨å¼€æ”¾åˆ—è¡¨ä¸­, 
+						//    åˆ™åˆ¤æ–­è‹¥ç»ç”±å½“å‰èŠ‚ç‚¹åˆ°è¾¾è¯¥ç›¸é‚»èŠ‚ç‚¹çš„Gå€¼æ˜¯å¦å°äºåŸæ¥ä¿å­˜çš„Gå€¼,
+						//    è‹¥å°äº,åˆ™å°†è¯¥ç›¸é‚»èŠ‚ç‚¹çš„çˆ¶èŠ‚ç‚¹è®¾ä¸ºå½“å‰èŠ‚ç‚¹,å¹¶é‡æ–°è®¾ç½®è¯¥ç›¸é‚»èŠ‚ç‚¹çš„Gå’ŒFå€¼
+						if (adjacentTmp->isOpen)	//å·²ç»åœ¨openListä¸­
 						{
 							if (currNode->f + adjacentTmp->GetWallDistance(abs(i - currNode->arrivalWall)) < adjacentTmp->f)
 							{
@@ -335,8 +319,8 @@ namespace Liar
 						}
 						else
 						{
-							//ÒÑÔÚcloseListÖĞ
-							sourceAdjacentTmp = nullptr;
+							//å·²åœ¨closeListä¸­
+							//adjacentTmp = nullptr;
 							continue;
 						}
 					}
@@ -344,39 +328,36 @@ namespace Liar
 			}
 		}
 
-		//ÓÉÍø¸ñÂ·¾¶Éú³ÉPointÊı×éÂ·¾¶
+		//ç”±ç½‘æ ¼è·¯å¾„ç”ŸæˆPointæ•°ç»„è·¯å¾„
 		if (foundPath)
 		{
-			return GetPath(startX, startY, endX, endY, outLen, rw);
-		}
-		else
-		{
-			return nullptr;
+			GetPath(startX, startY, endX, endY, outLen, rw);
 		}
 	}
 
 	/**
-	* ¸ù¾İ¾­¹ıµÄÈı½ÇĞÎ·µ»ØÂ·¾¶µã(ÏÂÒ»¸ö¹Õ½Çµã·¨)
+	* æ ¹æ®ç»è¿‡çš„ä¸‰è§’å½¢è¿”å›è·¯å¾„ç‚¹(ä¸‹ä¸€ä¸ªæ‹è§’ç‚¹æ³•)
 	* @param start
 	* @param end
-	* @return PointÊı×é
+	* @return Pointæ•°ç»„
 	*/
-	Liar::Vector2f** NavMesh::GetPath(const Liar::Vector2f& start, const Liar::Vector2f& end, Liar::Uint& outLen, bool rw)
+	void NavMesh::GetPath(const Liar::Vector2f& start, const Liar::Vector2f& end, Liar::Uint& outLen, bool rw)
 	{
-		return GetPath(start.GetX(), start.GetY(), end.GetX(), end.GetY(), outLen, rw);
+		GetPath(start.GetX(), start.GetY(), end.GetX(), end.GetY(), outLen, rw);
 	}
 
-	Liar::Vector2f** NavMesh::GetPath(Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, Liar::Uint& outLen, bool rw)
+	void NavMesh::GetPath(Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, Liar::NAVDTYPE endX, Liar::NAVDTYPE endY, Liar::Uint& outLen, bool rw)
 	{
-		//¾­¹ıµÄÈı½ÇĞÎ
-		GetCellPath();
+		//ç»è¿‡çš„ä¸‰è§’å½¢
+		Liar::Uint numCellPath = 0;
+		Liar::Cell** pathCells = GetCellPath(numCellPath);
 
-		if (m_crossCount > 0)
+		if (numCellPath > 0)
 		{
-			//¿ªÊ¼µã
+			//å¼€å§‹ç‚¹
 			AddPathPoint(startX, startY, outLen);
-			//ÆğµãÓëÖÕµãÔÚÍ¬Ò»Èı½ÇĞÎÖĞ
-			if (m_crossCount == 1)
+			//èµ·ç‚¹ä¸ç»ˆç‚¹åœ¨åŒä¸€ä¸‰è§’å½¢ä¸­
+			if (numCellPath == 1)
 			{
 				AddPathPoint(endX, endY, outLen);
 			}
@@ -387,32 +368,26 @@ namespace Liar
 					m_wayPoint = (Liar::WayPoint*)malloc(sizeof(Liar::WayPoint));
 					m_wayPoint->Init();
 				}
-				m_wayPoint->Set(m_crossList[0], *(m_path[0]));
+				m_wayPoint->Set(pathCells[0], *(m_path[0]));
 
 #ifdef FindNearest
-				int preNCount = m_nearstCount++;
-				m_nearstCells = (Liar::Cell**)malloc(sizeof(Liar::Cell*)*m_nearstCount);
-				m_nearstCells[preNCount] = m_wayPoint->GetCaller();
+				AddNearestCaller(m_wayPoint->GetCaller());
 #endif // FindNearest
 
 				while (!(m_wayPoint->GetPos().Equals(endX, endY)))
 				{
-					m_wayPoint->GetFurthestWayPoint(m_crossList, m_crossCount, endX, endY, rw);
+					m_wayPoint->GetFurthestWayPoint(pathCells, numCellPath, endX, endY, rw);
 					AddPathPoint(m_wayPoint->GetPos(), outLen);
 
 #ifdef FindNearest
-					preNCount = m_nearstCount++;
-					m_nearstCells = (Liar::Cell**)realloc(m_nearstCells, sizeof(Liar::Cell*)*m_nearstCount);
-					m_nearstCells[preNCount] = m_wayPoint->GetCaller();
+					AddNearestCaller(m_wayPoint->GetCaller());
 #endif // FindNearest
 
 				}
 
 #ifdef FindNearest
 				FindNearestPath(0, m_path, outLen);
-#ifdef ShareFind
 				for (Liar::Uint i = 0; i < m_nearstCount; ++i) m_nearstCells[i]->checkLinkCount = 0;
-#endif
 				free(m_nearstCells);
 				m_nearstCells = nullptr;
 				m_nearstCount = 0;
@@ -423,12 +398,23 @@ namespace Liar
 			m_closeCount = 0;
 			free(m_closeList);
 			m_closeList = nullptr;
-		}
-		return m_path;
 
+			free(pathCells);
+			pathCells = nullptr;
+		}
 	}
 
 #ifdef FindNearest
+
+	void NavMesh::AddNearestCaller(Liar::Cell* cell)
+	{
+		++m_nearstCount;
+		size_t blockSize = sizeof(Liar::Cell*)*m_nearstCount;
+		if (m_nearstCells) m_nearstCells = (Liar::Cell**)realloc(m_nearstCells, blockSize);
+		else m_nearstCells = (Liar::Cell**)malloc(blockSize);
+		m_nearstCells[m_nearstCount - 1] = cell;
+	}
+
 	void NavMesh::FindNearestPath(Liar::Uint startIndex, Liar::Vector2f** path, Liar::Uint& pathCount)
 	{
 		if (startIndex >= pathCount)
@@ -447,11 +433,7 @@ namespace Liar
 			Liar::Vector2f* checkPos = path[i];
 			Liar::Cell* checkCell = m_nearstCells[i];
 
-#ifdef ShareFind
 			if (startCell == checkCell) continue;
-#else
-			if (startCell->Equals(*checkCell)) continue;
-#endif // ShareFind
 
 			if (abs(i - revertIndex) == 2)
 			{
@@ -508,114 +490,14 @@ namespace Liar
 				m_nearstCells[resetIndex++] = m_nearstCells[i];
 			}
 
-			pathCount = pathCount - resetCount;
+			pathCount -= resetCount;
 			m_nearstCount -= resetCount;
 		}
 
 		FindNearestPath(startIndex + 1, path, pathCount);
 	}
-#endif // FindNearest
 
-	/**
-	* Â·¾¶¾­¹ıµÄÍø¸ñ
-	* @return
-	*/
-	void NavMesh::GetCellPath()
-	{
-		Liar::Cell* st = m_closeList[m_closeCount - 1];
-		AddCrossCell(st);
-		while (st->parent)
-		{
-			m_crossList[m_crossCount] = st->parent;
-			AddCrossCell(st);
-			st = st->parent;
-		}
-		AddCrossCell(st);
-	}
-
-	void NavMesh::AddCrossCell(Cell* cell)
-	{
-		int preCross = m_crossCount++;
-		size_t blockSize = sizeof(Liar::Cell*)*m_crossCount;
-		if (m_crossList) m_crossList = (Liar::Cell**)realloc(m_crossList, blockSize);
-		else m_crossList = (Liar::Cell**)malloc(blockSize);
-		m_crossList[preCross] = cell;
-	}
-
-	/*
-	*	add point to path
-	*/
-	Liar::Vector2f** NavMesh::AddPathPoint(const Liar::Vector2f& vec, Liar::Uint& len)
-	{
-		return AddPathPoint(vec.GetX(), vec.GetY(), len);
-	}
-
-	Liar::Vector2f** NavMesh::AddPathPoint(Liar::NAVDTYPE x, Liar::NAVDTYPE y, Liar::Uint& len)
-	{
-		++len;
-		Liar::Vector2f* addPoint = nullptr;
-		if (len > m_numPath)
-		{
-			size_t blockSize = sizeof(Liar::Vector2f*)*len;
-			if (m_path) m_path = (Liar::Vector2f**)realloc(m_path, blockSize);
-			else m_path = (Liar::Vector2f**)malloc(blockSize);
-			m_numPath = len;
-			addPoint = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-		}
-		else
-		{
-			addPoint = m_path[len - 1];
-		}
-		addPoint->Set(x, y);
-		m_path[len - 1] = addPoint;
-		return m_path;
-	}
-
-	/**
-	* ÕÒ³ö¸ø¶¨µãËùÔÚµÄÈı½ÇĞÍ
-	* @param Point
-	* @return
-	*/
-	Liar::Cell* NavMesh::FindClosestCell(const Vector2f& pt, bool rw)
-	{
-		return FindClosestCell(pt.GetX(), pt.GetY(), rw);
-	}
-
-	Liar::Cell* NavMesh::FindClosestCell(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw)
-	{
-
-#ifndef ShareFind
-		bool initTmp = false;
-		if (!m_tmpClosetCell)
-		{
-			m_tmpClosetCell = (Liar::Cell*)malloc(sizeof(Liar::Cell));
-			initTmp = true;
-		}
-#endif // !ShareFind
-
-		Liar::Uint numCell = m_map->GetCellCount();
-		Liar::Cell** cells = m_map->GetCells();
-		for (Liar::Uint i = 0; i < numCell; ++i)
-		{
-			Liar::Cell* it = cells[i];
-#ifdef ShareFind
-			if (it->IsPointIn(x, y, rw))
-			{
-				return it;
-			}
-#else
-			m_tmpClosetCell->Set(*it, initTmp);
-			initTmp = false;
-			if(m_tmpClosetCell->IsPointIn(x, y, rw))
-			{
-				return AddTestCell(m_tmpClosetCell);
-			}
-#endif
-		}
-		return nullptr;
-	}
-
-	// ¼ì²âÁ½µã¼äÊÇ·ñÄÜÖ±´ï
+	// æ£€æµ‹ä¸¤ç‚¹é—´æ˜¯å¦èƒ½ç›´è¾¾
 	bool NavMesh::TestOneLine2D(const Vector2f& start, const Vector2f& end, Cell* startCell, Cell* endCell)
 	{
 		return TestOneLine2D(start.GetX(), start.GetY(), end.GetX(), end.GetY(), startCell, endCell);
@@ -627,28 +509,23 @@ namespace Liar
 		Liar::Cell* startCell, Liar::Cell* endCell
 	)
 	{
-		// ¼ÇÂ¼ÒÑ¾­ÕÒ¹ıµÄÂ·¾¶
+		// è®°å½•å·²ç»æ‰¾è¿‡çš„è·¯å¾„
 		Liar::Cell** crossCells = (Liar::Cell**)malloc(sizeof(Liar::Cell*));
 		int crossCount = 1;
-		int pre = 0;
 		Liar::Cell* cell = endCell;
 		crossCells[0] = cell;
 
 		bool findCross = true;
 
-#ifdef ShareFind
 		while (cell && cell != startCell)
-#else
-		while (cell && cell->Equals(*startCell))
-#endif // ShareFind
 		{
 			cell = GetCrossCell(startX, startY, endX, endY, *cell, crossCells, crossCount, findCross);
 			findCross = false;
 			if (cell)
 			{
-				pre = crossCount++;
+				crossCount++;
 				crossCells = (Liar::Cell**)realloc(crossCells, sizeof(Liar::Cell*)*crossCount);
-				crossCells[pre] = cell;
+				crossCells[crossCount - 1] = cell;
 			}
 			else
 			{
@@ -668,11 +545,7 @@ namespace Liar
 		}
 		free(crossCells);
 
-#ifdef ShareFind
 		return (cell && cell == startCell);
-#else
-		return (cell && cell->Equals(*startCell));
-#endif // ShareFind
 	}
 
 	Cell* NavMesh::GetCrossCell(const Vector2f& start, const Vector2f& end, Liar::Cell& testCell, Liar::Cell** crossList, int count, bool findCross)
@@ -710,11 +583,7 @@ namespace Liar
 				bool crossed = false;
 				for (int f = 0; f < count; ++f)
 				{
-#ifdef ShareFind
 					if (crossList[f] == sourceAdjacentTmp)
-#else
-					if(crossList[f]->Equals(*sourceAdjacentTmp))
-#endif // ShareFind
 					{
 						crossed = true;
 						break;
@@ -738,11 +607,7 @@ namespace Liar
 				}
 			}
 		}
-#ifdef ShareFind
 		return outTmp;
-#else
-		return AddTestCell(outTmp);
-#endif // ShareFind
 	}
 
 	int NavMesh::TestLineCell(const Cell& sourceAdjacentTmp, const Vector2f& start, const Vector2f& end)
@@ -751,8 +616,8 @@ namespace Liar
 	}
 
 	int NavMesh::TestLineCell(
-		const Liar::Cell& sourceAdjacentTmp, 
-		Liar::NAVDTYPE startX, Liar::NAVDTYPE startY, 
+		const Liar::Cell& sourceAdjacentTmp,
+		Liar::NAVDTYPE startX, Liar::NAVDTYPE startY,
 		Liar::NAVDTYPE endX, Liar::NAVDTYPE endY)
 	{
 		int crossCount = 0;
@@ -764,22 +629,22 @@ namespace Liar
 			int intersect1 = LineIntersectSide(endX, endY, startX, startY, pa, pb);
 			int intersect2 = LineIntersectSide(pa, pb, endX, endY, startX, startY);
 			int intersect = intersect1 < intersect2 ? intersect1 : intersect2;
-			if (intersect == 0) // Èç¹ûÊÇÔÚ¹²ÓÃ±ßÉÏµÄ½»µã£¬Ò²ÊÇ¿ÉÒÔºöÂÔµÄ
+			if (intersect == 0) // å¦‚æœæ˜¯åœ¨å…±ç”¨è¾¹ä¸Šçš„äº¤ç‚¹ï¼Œä¹Ÿæ˜¯å¯ä»¥å¿½ç•¥çš„
 			{
 				/*if (sourceAdjacentTmp.arrivalWall < 0)
 				{
-					++crossCount;
+				++crossCount;
 				}
 				else
 				{
-					if (_crossCount <= 0) continue;
-					NAVDTYPE tx = 0.0;
-					NAVDTYPE ty = 0.0;
-					GetCrossVector2f(end, start, *pa, *pb, tx, ty);
-					if (pa->Equals(tx, ty, EPSILON) || pb->Equals(tx, ty, EPSILON))
-					{
-						++crossCount;
-					}
+				if (_crossCount <= 0) continue;
+				NAVDTYPE tx = 0.0;
+				NAVDTYPE ty = 0.0;
+				GetCrossVector2f(end, start, *pa, *pb, tx, ty);
+				if (pa->Equals(tx, ty, EPSILON) || pb->Equals(tx, ty, EPSILON))
+				{
+				++crossCount;
+				}
 				}*/
 				++crossCount;
 			}
@@ -801,7 +666,7 @@ namespace Liar
 
 	int NavMesh::LineIntersectSide(const Vector2f& A, const Vector2f& B, const Vector2f& C, const Vector2f& D)
 	{
-		// A(x1, y1), B(x2, y2)µÄÖ±Ïß·½³ÌÎª£º  
+		// A(x1, y1), B(x2, y2)çš„ç›´çº¿æ–¹ç¨‹ä¸ºï¼š  
 		// f(x, y) =  (y - y1) * (x1 - x2) - (x - x1) * (y1 - y2) = 0  
 
 		Liar::NAVDTYPE AX = A.GetX();
@@ -840,9 +705,9 @@ namespace Liar
 	}
 
 	int NavMesh::LineIntersectSide(
-		Liar::NAVDTYPE AX, Liar::NAVDTYPE AY, 
-		Liar::NAVDTYPE BX, Liar::NAVDTYPE BY, 
-		Liar::NAVDTYPE CX, Liar::NAVDTYPE CY, 
+		Liar::NAVDTYPE AX, Liar::NAVDTYPE AY,
+		Liar::NAVDTYPE BX, Liar::NAVDTYPE BY,
+		Liar::NAVDTYPE CX, Liar::NAVDTYPE CY,
 		Liar::NAVDTYPE DX, Liar::NAVDTYPE DY)
 	{
 		NAVDTYPE fC = (CY - AY) * (AX - BX) - (CX - AX) * (AY - BY);
@@ -852,19 +717,19 @@ namespace Liar
 
 		if (val > 0)
 		{
-			return -1;	// Ã»½»µã
+			return -1;	// æ²¡äº¤ç‚¹
 		}
 		else if (val == 0)
 		{
-			return 0;	// ÔÚÏßÉÏ
+			return 0;	// åœ¨çº¿ä¸Š
 		}
 		else
 		{
-			return 1;	// Ïà½»
+			return 1;	// ç›¸äº¤
 		}
 	}
 
-	// »ñµÃ½»µã
+	// è·å¾—äº¤ç‚¹
 	bool NavMesh::GetCrossVector2f(const Vector2f& ss, const Vector2f& sd, const Vector2f& ts, const Vector2f& td, NAVDTYPE& x, NAVDTYPE& y)
 	{
 		Liar::NAVDTYPE ssX = ss.GetX();
@@ -900,6 +765,117 @@ namespace Liar
 		}
 	}
 
+#endif // FindNearest
+
+	/**
+	* è·¯å¾„ç»è¿‡çš„ç½‘æ ¼
+	* @return
+	*/
+	Liar::Cell** NavMesh::GetCellPath(Liar::Uint& numPath)
+	{
+		Liar::Cell* st = m_closeList[m_closeCount - 1];
+
+		++numPath;
+		size_t blockSize = sizeof(Liar::Cell*)*numPath;
+		Liar::Cell** pathCell = (Liar::Cell**)malloc(blockSize);
+		pathCell[numPath - 1] = st;
+
+		while (st->parent)
+		{
+#ifdef EditorMod
+			AddCrossCell(st);
+#endif // EditorMod
+			st = st->parent;
+			
+			++numPath;
+			blockSize = sizeof(Liar::Cell*)*numPath;
+			pathCell = (Liar::Cell**)realloc(pathCell, blockSize);
+			pathCell[numPath - 1] = st;
+		}
+
+#ifdef EditorMod
+		AddCrossCell(st);
+#endif // EditorMod
+
+		return pathCell;
+	}
+
+#ifdef EditorMod
+	void NavMesh::AddCrossCell(Cell* cell)
+	{
+		m_crossCount++;
+		size_t blockSize = sizeof(Liar::Cell*)*m_crossCount;
+		if (m_crossList) m_crossList = (Liar::Cell**)realloc(m_crossList, blockSize);
+		else m_crossList = (Liar::Cell**)malloc(blockSize);
+		m_crossList[m_crossCount - 1] = cell;
+	}
+
+	void NavMesh::DisposeCross()
+	{
+		if (m_crossList)
+		{
+			free(m_crossList);
+			m_crossList = nullptr;
+		}
+		m_crossCount = 0;
+	}
+#endif // !EditorMod
+
+	/*
+	*	add point to path
+	*/
+	Liar::Vector2f** NavMesh::AddPathPoint(const Liar::Vector2f& vec, Liar::Uint& len)
+	{
+		return AddPathPoint(vec.GetX(), vec.GetY(), len);
+	}
+
+	Liar::Vector2f** NavMesh::AddPathPoint(Liar::NAVDTYPE x, Liar::NAVDTYPE y, Liar::Uint& len)
+	{
+		++len;
+		Liar::Vector2f* addPoint = nullptr;
+		if (len > m_numPath)
+		{
+			size_t blockSize = sizeof(Liar::Vector2f*)*len;
+			if (m_path) m_path = (Liar::Vector2f**)realloc(m_path, blockSize);
+			else m_path = (Liar::Vector2f**)malloc(blockSize);
+			m_numPath = len;
+			addPoint = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		}
+		else
+		{
+			addPoint = m_path[len - 1];
+		}
+		addPoint->Set(x, y);
+		m_path[len - 1] = addPoint;
+		return m_path;
+	}
+
+	/**
+	* æ‰¾å‡ºç»™å®šç‚¹æ‰€åœ¨çš„ä¸‰è§’å‹
+	* @param Point
+	* @return
+	*/
+	Liar::Cell* NavMesh::FindClosestCell(const Vector2f& pt, bool rw)
+	{
+		return FindClosestCell(pt.GetX(), pt.GetY(), rw);
+	}
+
+	Liar::Cell* NavMesh::FindClosestCell(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw)
+	{
+
+		Liar::Uint numCell = m_map->GetCellCount();
+		Liar::Cell** cells = m_map->GetCells();
+		for (Liar::Uint i = 0; i < numCell; ++i)
+		{
+			Liar::Cell* it = cells[i];
+			if (it->IsPointIn(x, y, rw))
+			{
+				return it;
+			}
+		}
+		return nullptr;
+	}
+
 	void NavMesh::DisposePath()
 	{
 		if (m_path)
@@ -916,40 +892,7 @@ namespace Liar
 		m_numPath = 0;
 	}
 
-	void NavMesh::DisposeCross()
-	{
-		if (m_crossList)
-		{
-			free(m_crossList);
-			m_crossList = nullptr;
-		}
-		m_crossCount = 0;
-	}
-
-#ifndef ShareFind
-	Liar::Cell* NavMesh::AddTestCell(Liar::Cell* source)
-	{
-		if (!source) return nullptr;
-		Liar::Cell* out = nullptr;
-		for (Liar::Uint i = 0; i < m_testCount; ++i)
-		{
-			if (m_testCells[i]->Equals(*source))
-			{
-				return m_testCells[i];
-			}
-		}
-
-		out = (Liar::Cell*)malloc(sizeof(Liar::Cell));
-		out->Set(*source);
-
-		++m_testCount;
-		size_t blockSize = sizeof(Liar::Cell*)*m_testCount;
-		if (m_testCells) m_testCells = (Liar::Cell**)realloc(m_testCells, blockSize);
-		else m_testCells = (Liar::Cell**)malloc(blockSize);
-		m_testCells[m_testCount - 1] = out;
-		return out;
-	}
-#else
+#ifdef ShareFind
 	int NavMesh::PATHSESSIONID = 0;
 #endif // !ShareFind
 

@@ -182,6 +182,7 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 #endif // DEBUG_NIF
 	try
 	{
+		if (map->GetLocked()) return res;
 		Liar::Uint count = 0;
 		Liar::Vector2f** path = map->FindPath(startx, starty, endx, endy, count);
 		if (count > 0)
@@ -196,6 +197,7 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 				res = enif_make_list_cell(env, enif_make_double(env, path[i]->GetX()), res);
 			}
 		}
+		map->SetLocked(false);
 	}
 	catch (char *)
 	{

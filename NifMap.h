@@ -28,16 +28,9 @@ namespace Liar
 		Liar::Int m_bid;
 		Liar::Map** m_mapList;
 		Liar::Uint m_mapcount;
-
-#ifdef ShareFind
+		bool m_isLocked;
 		// navMesh
 		Liar::NavMesh* m_navMesh;
-#endif // ShareFind
-
-#ifdef EditorMod
-		Liar::Cell** m_crossList;
-		Liar::Uint m_crossCount;
-#endif // EditorMod
 
 	private:
 		bool ParseErlangTerm(ErlNifEnv*, ERL_NIF_TERM, bool = true);
@@ -45,9 +38,7 @@ namespace Liar
 		Liar::Polygon* CheckAutoAddPolygon(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int BuildMapByIndex(Liar::Uint, bool = true);
 		void CalcAllMapBound();
-#ifdef ShareFind
 		void DisposeNavMesh();
-#endif // ShareFind
 
 	public:
 		static bool ReadErlangCPType(ErlNifEnv*, ERL_NIF_TERM, NAVDTYPE&);
@@ -66,13 +57,17 @@ namespace Liar
 		void DestoryLast();
 
 		Liar::Int GetBid() const { return m_bid; };
+		bool Equals(const Liar::NifMap& map) { return map.m_bid == m_bid; };
+		bool Equals(Liar::Int bid) { return bid == m_bid; };
+		void SetLocked(bool locked) { m_isLocked = locked; };
+		bool GetLocked() const { return m_isLocked; };
 
 #ifdef EditorMod
 		void GetBound(Liar::NAVDTYPE&, Liar::NAVDTYPE&, Liar::NAVDTYPE&, Liar::NAVDTYPE&);
 		Liar::Uint GetMapCount() const { return m_mapcount; };
 		Liar::Map* GetMap(size_t index) { return m_mapList[index]; };
-		Liar::Cell** GetCrossList() const { return m_crossList; };
-		Liar::Uint GetCrossCount() const { return m_crossCount; };
+		Liar::Cell** GetCrossList() const { return m_navMesh ? m_navMesh->GetCrossCells() : nullptr; };
+		Liar::Uint GetCrossCount() const { return m_navMesh ? m_navMesh->GetNumCrossCells() : 0; };
 #endif // EditorMod
 
 #if defined(DEBUG_NIF) || defined(EditorMod)

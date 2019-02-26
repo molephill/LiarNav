@@ -1,55 +1,47 @@
+
 #include "Heap.h"
+
+#include<stdlib.h> 
 
 namespace Liar
 {
-	Heap::Heap() :
-		m_heap(nullptr), m_numCells(0), m_curNum(0)
+
+	Heap::Heap()
 	{
 	}
 
 
 	Heap::~Heap()
 	{
-		if (m_heap)
-		{
-			free(m_heap);
-			m_heap = nullptr;
-			m_numCells = 0;
-			m_curNum = 0;
-		}
-	}
-
-	void Heap::Init()
-	{
+		free(m_heap);
 		m_heap = nullptr;
+		m_count = 0;
 	}
 
-	void Heap::Set(Liar::Uint size)
+	void Heap::Set(int size)
 	{
-		m_numCells = size + 1;
-		size_t blockSize = sizeof(sizeof(Liar::Cell*)) * m_numCells;
-		if(!m_heap) m_heap = (Liar::Cell**)malloc(blockSize);
-		else m_heap = (Liar::Cell**)realloc(m_heap, blockSize);
-		for (Liar::Uint i = 0; i < m_numCells; ++i) m_heap[i] = nullptr;
-		m_curNum = 0;
+		m_size = size + 1;
+		size_t blockSize = sizeof(Liar::Cell*)*m_size;
+		m_heap = (Liar::Cell**)malloc(blockSize);
+		m_count = 0;
 	}
 
-	bool Heap::Push(Liar::Cell* ce)
+	bool Heap::Push(Cell * ce)
 	{
-		if (m_curNum + 1 < m_numCells)
+		if (m_count + 1 < m_size)
 		{
-			m_heap[++m_curNum] = ce;
+			m_heap[++m_count] = ce;
 
 			/*printf("=========put in heap======count:%d\n", _count);
 			ce->Print();*/
 
-			int i = m_curNum;
+			int i = m_count;
 			int parent = i >> 1;
-			Liar::Cell* tmp = m_heap[i];
+			Cell* tmp = m_heap[i];
 
 			while (parent > 0)
 			{
-				Liar::Cell* v = m_heap[parent];
+				Cell* v = m_heap[parent];
 				if (Compare(tmp, v) > 0)
 				{
 					//printf("\n=====swap:%d\n", i);
@@ -77,28 +69,31 @@ namespace Liar
 	*
 	* @return The Heap's front item or nullptr if it is empty.
 	*/
-	Liar::Cell* Heap::Pop()
+	Cell* Heap::Pop()
 	{
-		if (m_curNum > 0)
+		if (m_count > 0)
 		{
-			Liar::Cell* o = m_heap[1];
+			Cell* o = m_heap[1];
 
-			m_heap[1] = m_heap[m_curNum];
-			m_heap[m_curNum] = nullptr;
+			m_heap[1] = m_heap[m_count];
+			m_heap[m_count] = nullptr;
 			//delCellPosVector(_heap, _count);
 
 			int i = 1;
-			Liar::Uint child = i << 1;
-			Liar::Cell* tmp = m_heap[i];
+			int child = i << 1;
+			Cell* tmp = m_heap[i];
 
-			while (child < m_curNum)
+			while (child < m_count)
 			{
-				if (child < m_curNum - 1)
+				if (child < m_count - 1)
 				{
-					if (Compare(m_heap[child], m_heap[child + 1]) < 0) ++child;
+					if (Compare(m_heap[child], m_heap[child + 1]) < 0)
+					{
+						++child;
+					}
 				}
 
-				Liar::Cell* v = m_heap[child];
+				Cell* v = m_heap[child];
 				if (Compare(tmp, v) < 0)
 				{
 					m_heap[i] = v;
@@ -112,20 +107,27 @@ namespace Liar
 			}
 
 			m_heap[i] = tmp;
-			--m_curNum;
+			--m_count;
 			return o;
 		}
 		return nullptr;
 	}
 
-	Liar::NAVDTYPE Heap::Compare(const Liar::Cell* const c1, const Liar::Cell* const c2)
+	int Heap::Size()
+	{
+		return m_count;
+	}
+
+
+	// ==================== Ë½ÓÐº¯Êý ===============
+	NAVDTYPE Heap::Compare(Cell* const c1, Cell* const c2)
 	{
 		return c2->f - c1->f;
 	}
 
 	void Heap::Clear()
 	{
-		for (Liar::Uint i = 0; i < m_numCells; ++i) m_heap[i] = nullptr;
-		m_curNum = 0;
+		for (int i = 0; i < m_size; ++i) m_heap[i] = nullptr;
+		m_count = 0;
 	}
 }

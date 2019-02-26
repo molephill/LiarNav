@@ -43,6 +43,8 @@ namespace Liar
 	private:
 		void SetLineA(const Liar::Vector2f&, const Liar::Vector2f&);
 		void SetLineB(const Liar::Vector2f&, const Liar::Vector2f&);
+		Liar::NAVDTYPE GetLineALength() const;
+		Liar::NAVDTYPE GetLineBLength() const;
 	};
 }
 

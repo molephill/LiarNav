@@ -25,7 +25,6 @@ namespace Liar
 		~NavMesh();
 
 	private:
-		bool m_isLock;
 		Liar::Heap* m_openList;
 
 		Liar::Cell** m_closeList;
@@ -36,8 +35,10 @@ namespace Liar
 
 		Liar::WayPoint* m_wayPoint;
 
+#ifdef EditorMod
 		Cell** m_crossList;
 		Liar::Uint m_crossCount;
+#endif // EditorMod
 
 		static Liar::Uint PATHMAX;
 
@@ -46,39 +47,37 @@ namespace Liar
 		Liar::Uint m_nearstCount;
 #endif // FindNearest
 
-#ifndef ShareFind
-		Liar::Cell** m_testCells;
-		Liar::Uint m_testCount;
-		Liar::Cell* m_tmpClosetCell;
-		Liar::Int m_pathSessionId;
-#else
+#ifdef ShareFind
 		static int PATHSESSIONID;
-#endif // !ShareFind
+#else
+		int m_pathsession;
+#endif // ShareFind
 
 	public:
 		Liar::Vector2f** FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&, bool rw = true);
 		void Init(const Liar::Map*);
 		void Set(const Liar::Map*);
 		void Dispose();
-		void SetLock(bool lock) { m_isLock = lock; };
 
 	private:
 		Liar::Cell* FindClosestCell(const Vector2f&, bool = true);
 		Liar::Cell* FindClosestCell(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true);
 		
-		void GetCellPath();
-		
-		void AddCrossCell(Cell*);
+		Liar::Cell** GetCellPath(Liar::Uint&);
 
-		Liar::Vector2f** GetPath(const Vector2f&, const Vector2f&, Liar::Uint&, bool = true);
-		Liar::Vector2f** GetPath(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&, bool = true);
+		void GetPath(const Vector2f&, const Vector2f&, Liar::Uint&, bool = true);
+		void GetPath(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&, bool = true);
 
 		Liar::Vector2f** AddPathPoint(const Liar::Vector2f&, Liar::Uint&);
 		Liar::Vector2f** AddPathPoint(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&);
 
-		Liar::Vector2f** BuildPath(Liar::Cell*, const Liar::Vector2f&, Liar::Cell*, const Liar::Vector2f&, Liar::Uint&, bool = true);
-		Liar::Vector2f** BuildPath(Liar::Cell*, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Cell*, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&, bool = true);
+		void BuildPath(Liar::Cell*, const Liar::Vector2f&, Liar::Cell*, const Liar::Vector2f&, Liar::Uint&, bool = true);
+		void BuildPath(Liar::Cell*, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Cell*, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Uint&, bool = true);
 
+		void DisposePath();
+
+#if FindNearest
+		void FindNearestPath(Liar::Uint, Liar::Vector2f**, Liar::Uint&);
 		bool TestOneLine2D(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Cell*, Liar::Cell*);
 		bool TestOneLine2D(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::Cell*, Liar::Cell*);
 
@@ -92,28 +91,19 @@ namespace Liar
 		int LineIntersectSide(const Vector2f&, const Vector2f&, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int LineIntersectSide(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, const Vector2f&, const Vector2f&);
 		int LineIntersectSide(Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE, Liar::NAVDTYPE);
-
 		bool GetCrossVector2f(const Vector2f&, const Vector2f&, const Vector2f&, const Vector2f&, NAVDTYPE&, NAVDTYPE&);
-		void DisposePath();
-		void DisposeCross();
-
-#ifndef ShareFind
-		void DisposeTestCells();
-#endif // ShareFind
-
-
-#if FindNearest
-		void FindNearestPath(Liar::Uint, Liar::Vector2f**, Liar::Uint&);
+		void AddNearestCaller(Liar::Cell*);
 #endif // FindNearest
 
 #ifdef EditorMod
 	public:
-		void GetCrossInfo(Liar::Cell**, Liar::Uint&);
-#endif // EditorMod
+		Liar::Cell** GetCrossCells() const { return m_crossList; };
+		Liar::Uint GetNumCrossCells() const { return m_crossCount; };
 
-#ifndef ShareFind
-		Liar::Cell* AddTestCell(Liar::Cell*);
-#endif // !ShareFind
+	private:
+		void AddCrossCell(Cell*);
+		void DisposeCross();
+#endif // EditorMod
 
 	};
 }
