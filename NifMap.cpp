@@ -140,8 +140,10 @@ namespace Liar
 
 	Liar::Vector2f** NifMap::FindPath(NAVDTYPE startX, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint& count)
 	{
+#ifndef EditorMod
 		if (m_isLocked) return nullptr;
 		m_isLocked = true;
+#endif // !EditorMod
 
 		Liar::Map* map = nullptr;
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
@@ -151,9 +153,6 @@ namespace Liar
 			{
 				m_navMesh->Set(map);
 				Liar::Vector2f** out = m_navMesh->FindPath(startX, startY, endX, endY, count);
-#ifdef EditorMod
-				m_isLocked = false;
-#endif // EditorMod
 				return out;
 			}
 		}
