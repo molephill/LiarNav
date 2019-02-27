@@ -149,7 +149,12 @@ namespace Liar
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
 		{
 			map = m_mapList[i];
+#ifdef OutFind
+			if (map->InMap(endX, endY))
+#else
 			if (map->InMap(startX, startY) && map->InMap(endX, endY))
+#endif // OutFind
+			
 			{
 				m_navMesh->Set(map);
 				Liar::Vector2f** out = m_navMesh->FindPath(startX, startY, endX, endY, count);
@@ -198,6 +203,19 @@ namespace Liar
 				return;
 			}
 		}
+	}
+
+	Liar::Map* NifMap::GetInMap(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	{
+		for (Liar::Uint i = 0; i < m_mapcount; ++i)
+		{
+			if (m_mapList[i]->InMap(x, y))
+			{
+				return m_mapList[i];
+			}
+		}
+
+		return nullptr;
 	}
 
 	Liar::Polygon* NifMap::CheckAutoAddPolygon(Liar::NAVDTYPE x, Liar::NAVDTYPE y)

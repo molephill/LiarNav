@@ -53,7 +53,8 @@ namespace Liar
 		m_cells = nullptr;
 		m_numberCell = 0;
 
-		m_minX = m_minY = m_maxX = m_maxY = Liar::ZERO;
+		m_minX = m_minY = FLT_MAX;
+		m_maxX = m_maxY = FLT_MIN;
 	}
 
 	bool Map::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y)

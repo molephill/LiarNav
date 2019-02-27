@@ -35,7 +35,6 @@ namespace Liar
 	private:
 		bool ParseErlangTerm(ErlNifEnv*, ERL_NIF_TERM, bool = true);
 		void CheckAddPolygon(Liar::Vector2f*, int);
-		Liar::Polygon* CheckAutoAddPolygon(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int BuildMapByIndex(Liar::Uint, bool = true);
 		void CalcAllMapBound();
 		void DisposeNavMesh();
@@ -45,6 +44,8 @@ namespace Liar
 
 		void Set(Liar::Int);
 		bool AddPologyMapByIndex(int, Liar::Vector2f*, Liar::Uint);
+		Liar::Map* GetInMap(Liar::NAVDTYPE, Liar::NAVDTYPE);
+		Liar::Polygon* CheckAutoAddPolygon(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		int BuildAll(bool = true);
 
 		Liar::Vector2f** FindPath(NAVDTYPE startx, NAVDTYPE startY, NAVDTYPE endX, NAVDTYPE endY, Liar::Uint&);
