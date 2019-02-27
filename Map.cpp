@@ -1,5 +1,6 @@
 #include "Map.h"
 #include "Delaunay.h"
+#include <float.h>
 
 namespace Liar
 {
