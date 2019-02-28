@@ -96,7 +96,7 @@ namespace Liar
 				m_minX = m_minX < rect[0] ? m_minX : rect[0];
 				m_maxX = m_maxX > rect[1] ? m_maxX : rect[1];
 				m_minY = m_minY < rect[2] ? m_minY : rect[2];
-				m_maxY = m_maxY < rect[3] ? m_maxY : rect[3];
+				m_maxY = m_maxY > rect[3] ? m_maxY : rect[3];
 			}
 		}
 	}
