@@ -68,39 +68,51 @@ namespace Liar
 		ERL_NIF_TERM head, tail;
 		ERL_NIF_TERM subHead, subTail;
 		int arity = 0;
-		NAVDTYPE x = 0.0, y = 0.0;
+		Liar::NAVDTYPE x = Liar::ZERO, y = Liar::ZERO;
 		const ERL_NIF_TERM* termArray;
 
-		Liar::Map& map = AutoAddMap();
+		Liar::Map* map = nullptr;
 		Liar::Uint pointIndex = 0;
 		Liar::Polygon* polygon = nullptr;
 
 		while (enif_get_list_cell(env, Info, &head, &tail))
 		{
-			if (isWall) polygon = &(map.AutoAddPolygon());
-			else polygon = nullptr;
+			if (isWall)
+			{
+				map = &(AutoAddMap());
+				polygon = &(map->AutoAddPolygon());
+			}
+			else
+			{
+				map = nullptr;
+				polygon = nullptr;
+			}
 
 			while (enif_get_list_cell(env, head, &subHead, &subTail))
 			{
 				if (enif_get_tuple(env, subHead, &arity, &termArray))
 				{
-					if (!NifMap::ReadErlangCPType(env, termArray[0], x) || !NifMap::ReadErlangCPType(env, termArray[1], y)) 
+					if (!Liar::NifMap::ReadErlangCPType(env, termArray[0], x) || !Liar::NifMap::ReadErlangCPType(env, termArray[1], y)) 
 					{
-						map.DisposePolygon(polygon);
+						if(map) map->DisposePolygon(polygon);
 						return false;
 					}
 
-					if (!isWall && !polygon) polygon = CheckAutoAddPolygon(x, y);
+					if (!isWall && !map)
+					{
+						map = GetInMap(x, y);
+						if(map) polygon = &(map->AutoAddPolygon());
+					}
 
 					if (polygon)
 					{
-						pointIndex = map.AddVertex(x, y);
+						pointIndex = map->AddVertex(x, y);
 						polygon->AddPointIndex(pointIndex);
 					}
 				}
 				else
 				{
-					map.DisposePolygon(polygon);
+					if(map) map->DisposePolygon(polygon);
 					return false;
 				}
 
@@ -220,13 +232,8 @@ namespace Liar
 
 	Liar::Polygon* NifMap::CheckAutoAddPolygon(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
 	{
-		for (Liar::Uint i = 0; i < m_mapcount; ++i)
-		{
-			if (m_mapList[i]->InMap(x, y))
-			{
-				return &(m_mapList[i]->AutoAddPolygon());
-			}
-		}
+		Liar::Map* map = GetInMap(x, y);
+		if (map) return &(map->AutoAddPolygon());
 		return nullptr;
 	}
 

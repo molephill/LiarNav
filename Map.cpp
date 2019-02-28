@@ -83,7 +83,7 @@ namespace Liar
 
 	void Map::CalcBound(Liar::Int index, bool force)
 	{
-		if (m_minX == Liar::ZERO && m_minY == Liar::ZERO && m_maxX == Liar::ZERO && m_maxY == Liar::ZERO)
+		if (m_minX == FLT_MAX && m_minY == FLT_MAX && m_maxX == FLT_MIN && m_maxY == FLT_MIN)
 		{
 			if (index < 0)
 			{
@@ -258,7 +258,9 @@ namespace Liar
 		{
 			Liar::Uint i = 0;
 			Liar::Uint j = m_numberCell - 1;
-			for (i = 0, j = m_numberCell - 1; i <= m_numberCell / 2 - 1; ++i, --j)
+			Liar::NAVDTYPE tmpMax = m_numberCell * 0.5 - 1;
+			Liar::Uint max = tmpMax >= 0 ? static_cast<Liar::Uint>(tmpMax) : 0;
+			for (i = 0, j = m_numberCell - 1; i <= max; ++i, --j)
 			{
 				Liar::Cell* tmpCell = m_cells[i];
 				m_cells[j]->SetIndex(i);

@@ -33,6 +33,9 @@ namespace Liar
 		static Liar::Uint* m_findDTPoints;
 		static Liar::Uint m_numFindDTPoints;
 
+		static Liar::Line2d* m_edge;
+		static Liar::Vector2f* m_interscetVector;
+
 	public:
 		static Liar::Uint Set(Liar::Map&, bool = true, Liar::Uint = 0);
 		static void Dispose();

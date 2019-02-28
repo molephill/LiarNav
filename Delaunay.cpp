@@ -38,6 +38,20 @@ namespace Liar
 			m_findDTPoints = nullptr;
 		}
 
+		if (m_edge)
+		{
+			m_edge->~Line2d();
+			free(m_edge);
+			m_edge = nullptr;
+		}
+
+		if (m_interscetVector)
+		{
+			m_interscetVector->~Vector2f();
+			free(m_interscetVector);
+			m_interscetVector = nullptr;
+		}
+
 #ifdef UNION_POLYGON
 		if (m_nodes1)
 		{
@@ -77,6 +91,18 @@ namespace Liar
 		}
 
 		if (!m_tmpRange) m_tmpRange = (Liar::NAVDTYPE*)malloc(sizeof(Liar::NAVDTYPE) * 4);
+
+		if (!m_edge)
+		{
+			m_edge = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
+			m_edge->Set(nullptr);
+		}
+
+		if (!m_interscetVector)
+		{
+			m_interscetVector = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+			m_interscetVector->Set(Liar::ZERO, Liar::ZERO);
+		}
 		// ============================================
 
 		m_curNumLines = 0;
@@ -128,11 +154,9 @@ namespace Liar
 		firstLine->Set(initEdge);
 		lineV[0] = firstLine;
 
-		Liar::Line2d* edge = (Liar::Line2d*)malloc(sizeof(Liar::Line2d));
-		edge->Set(initEdge);
+		m_edge->Set(initEdge);
 
-		Liar::Vector2f* interscetVector = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-		interscetVector->Set(Liar::ZERO, Liar::ZERO);
+		m_interscetVector->Set(Liar::ZERO, Liar::ZERO);
 
 #ifdef PRINT
 		int index = 0;
@@ -144,19 +168,19 @@ namespace Liar
 		{
 			idx = tmpLineCount - 1;
 
-			edge->Set(*lineV[idx]);
+			m_edge->Set(*lineV[idx]);
 			lineV = RemovePosLine(lineV, tmpLineCount, idx);
 
-			Liar::Int p3Index = FindDT(map, *edge, *interscetVector, isCW);
+			Liar::Int p3Index = FindDT(map, *m_edge, *m_interscetVector, isCW);
 
 			if (p3Index < 0) continue;
 
-			Liar::Uint pointAIndex = edge->GetPointAIndex();
-			Liar::Uint pointBIndex = edge->GetPointBIndex();
+			Liar::Uint pointAIndex = m_edge->GetPointAIndex();
+			Liar::Uint pointBIndex = m_edge->GetPointBIndex();
 
 			Liar::Vector2f* p3 = map.GetVertex(p3Index);
-			Liar::Vector2f& pa = edge->GetPointA();
-			Liar::Vector2f& pb = edge->GetPointB();
+			Liar::Vector2f& pa = m_edge->GetPointA();
+			Liar::Vector2f& pb = m_edge->GetPointB();
 
 #ifdef PRINT
 			outfile << "index:" << index << ",tmplen:" << tmpLineCount << ",p3:{" << p3->GetX() << "," << p3->GetY() << "},pa:{" << pa.GetX() << "," << pa.GetY() << "},pb:{" << pb.GetX() << "," << pb.GetY() << "}\n";
@@ -185,17 +209,8 @@ namespace Liar
 		outfile.close();
 #endif // PRINT
 
-		edge->~Line2d();
-		free(edge);
-		edge = nullptr;
-
 		free(lineV);
 		lineV = nullptr;
-
-		interscetVector->~Vector2f();
-		free(interscetVector);
-		interscetVector = nullptr;
-
 	}
 
 	void Delaunay::BuildEdges(Liar::Map& map)
@@ -617,6 +632,8 @@ namespace Liar
 	Liar::NAVDTYPE* Liar::Delaunay::m_tmpRange = nullptr;
 	Liar::Uint* Liar::Delaunay::m_findDTPoints = nullptr;
 	Liar::Uint Liar::Delaunay::m_numFindDTPoints = 0;
+	Liar::Line2d* Liar::Delaunay::m_edge = nullptr;
+	Liar::Vector2f* Liar::Delaunay::m_interscetVector = nullptr;
 #ifdef UNION_POLYGON
 	void Delaunay::ExpandNodes(Liar::Uint type, Liar::Uint num)
 	{

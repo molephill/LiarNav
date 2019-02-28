@@ -25,7 +25,7 @@ namespace Liar
 	const static NAVDTYPE ZERO = 0.0f;
 
 	// define version
-	const static int NAV_VERSION = 1;
+	const static int NAV_VERSION = 2;
 
 	enum LineClassification
 	{
