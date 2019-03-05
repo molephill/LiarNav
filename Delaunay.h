@@ -37,6 +37,10 @@ namespace Liar
 		static Liar::Vector2f* m_interscetVector;
 
 	public:
+#ifdef EditorMod
+		static Liar::Int mapId;
+#endif // EditorMod
+
 		static Liar::Uint Set(Liar::Map&, bool = true, Liar::Uint = 0);
 		static void Dispose();
 

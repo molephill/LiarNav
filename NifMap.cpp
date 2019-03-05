@@ -257,6 +257,9 @@ namespace Liar
 	{
 		if(!ParseErlangTerm(env, Info)) return -1;
 		CalcAllMapBound();
+#ifdef EditorMod
+		Liar::Delaunay::mapId = m_bid;
+#endif // EditorMod
 		return Liar::Delaunay::Set(*(m_mapList[m_mapcount - 1]), isCW);
 	}
 
@@ -273,10 +276,10 @@ namespace Liar
 	// ¹¹½¨³¡¾°
 	int NifMap::BuildMapByIndex(Liar::Uint index, bool cw)
 	{
-		if (index >= m_mapcount)
-		{
-			return 0;
-		}
+		if (index >= m_mapcount) return 0;
+#ifdef EditorMod
+		Liar::Delaunay::mapId = m_bid;
+#endif // EditorMod
 		return Liar::Delaunay::Set(*(m_mapList[index]), cw);
 	}
 

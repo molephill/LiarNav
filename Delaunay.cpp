@@ -1,5 +1,10 @@
 #include "Delaunay.h"
 
+#ifdef EditorMod
+#include <string>
+#endif // EditorMod
+
+
 namespace Liar
 {
 	void Delaunay::Dispose()
@@ -194,11 +199,22 @@ namespace Liar
 			index++;
 #endif // PRINT
 
-
 			Liar::Cell* addTri = (Liar::Cell*)malloc(sizeof(Liar::Cell));
 			if(isCW) addTri->Set(&map, pointAIndex, pointBIndex, p3Index);
 			else addTri->Set(&map, p3Index, pointBIndex, pointAIndex);
-			map.AddNavMeshCell(addTri);
+			Liar::Uint curTri = map.AddNavMeshCell(addTri);
+
+			if (curTri > Liar::DEAD_LOOP_MAX)
+			{
+
+#ifdef EditorMod
+				char szString[32];
+				sprintf_s(szString, 32, "%d", mapId);
+				Liar::MapSource::WriteLog(szString, true, "nav_dead_loop.txt");
+#endif // EditorMod
+
+				break;
+			}
 
 			lineV = BuildTrianges(pa, *p3, lineV, tmpLineCount, map, pointAIndex, p3Index);
 			lineV = BuildTrianges(*p3, pb, lineV, tmpLineCount, map, p3Index, pointBIndex);
@@ -634,6 +650,10 @@ namespace Liar
 	Liar::Uint Liar::Delaunay::m_numFindDTPoints = 0;
 	Liar::Line2d* Liar::Delaunay::m_edge = nullptr;
 	Liar::Vector2f* Liar::Delaunay::m_interscetVector = nullptr;
+#ifdef EditorMod
+	Liar::Int Liar::Delaunay::mapId = 0;
+#endif // EditorMod
+
 #ifdef UNION_POLYGON
 	void Delaunay::ExpandNodes(Liar::Uint type, Liar::Uint num)
 	{

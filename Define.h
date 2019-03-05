@@ -23,6 +23,7 @@ namespace Liar
 	//
 	const static EPSILONTYPE EPSILON = 0.00001;
 	const static NAVDTYPE ZERO = 0.0f;
+	const static int DEAD_LOOP_MAX = 1000;
 
 	// define version
 	const static int NAV_VERSION = 2;

@@ -60,7 +60,7 @@ namespace Liar
 		void CalcBound(const Liar::Polygon&);
 
 		// add NavMesh cells;
-		void AddNavMeshCell(Liar::Cell*);
+		Liar::Uint AddNavMeshCell(Liar::Cell*);
 		Liar::Uint NavMeshLinkCells(bool = true);
 		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE);
 

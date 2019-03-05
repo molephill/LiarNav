@@ -243,13 +243,14 @@ namespace Liar
 		}
 	}
 
-	void Map::AddNavMeshCell(Liar::Cell* cell)
+	Liar::Uint Map::AddNavMeshCell(Liar::Cell* cell)
 	{
 		cell->SetIndex(m_numberCell++);
 		size_t blockSize = sizeof(Liar::Cell*)*m_numberCell;
 		if (m_cells) m_cells = (Liar::Cell**)realloc(m_cells, blockSize);
 		else m_cells = (Liar::Cell**)malloc(blockSize);
 		m_cells[m_numberCell - 1] = cell;
+		return m_numberCell;
 	}
 
 	Liar::Uint Map::NavMeshLinkCells(bool isCW)
