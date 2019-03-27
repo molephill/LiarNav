@@ -212,26 +212,20 @@ static ERL_NIF_TERM findpath(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 static ERL_NIF_TERM can_walk(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
 	int bid = 0;
-	if (!enif_get_int(env, argv[0], &bid)) return enif_make_int(env, -1);
+	if (!enif_get_int(env, argv[0], &bid)) return enif_make_int(env, 0);
 
 	Liar::NifMap* map = GetMap(bid);
 
-	if (!map) return enif_make_int(env, -2);
+	if (!map) return enif_make_int(env, 0);
 
 	Liar::NAVDTYPE startx = Liar::ZERO;
 	Liar::NAVDTYPE starty = Liar::ZERO;
 
-	if (!Liar::NifMap::ReadErlangCPType(env, argv[1], startx)) return enif_make_int(env, -3);
-	if (!Liar::NifMap::ReadErlangCPType(env, argv[2], starty)) return enif_make_int(env, -4);
+	if (!Liar::NifMap::ReadErlangCPType(env, argv[1], startx)) return enif_make_int(env, 0);
+	if (!Liar::NifMap::ReadErlangCPType(env, argv[2], starty)) return enif_make_int(env, 0);
 
-	if (map->CanWalk(startx, starty))
-	{
-		return enif_make_int(env, 1);
-	}
-	else
-	{
-		return enif_make_double(env, startx);
-	}
+	if (map->CanWalk(startx, starty)) return enif_make_int(env, 1);
+	else return enif_make_int(env, 0);
 }
 
 static ERL_NIF_TERM free(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
