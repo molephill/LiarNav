@@ -106,15 +106,26 @@ namespace Liar
 
 					if (polygon)
 					{
-						pointIndex = map->AddVertex(x, y);
-						polygon->AddPointIndex(pointIndex);
+#ifdef INFLATE
+						Liar::Delaunay::AddVertex(x, y);
+#else
+						Liar::Delaunay::AddVertex(*map, *polygon, x, y);
+#endif // INFLATE
 					}
 				}
 				else
 				{
 					if(map) map->DisposePolygon(polygon);
+#ifdef INFLATE
+					Liar::Delaunay::ResetInFlate();
+#endif // INFLATE
 					return false;
 				}
+
+#ifdef INFLATE
+				Liar::Delaunay::Inflate(*map, *polygon);
+#endif // INFLATE
+
 
 				head = subTail;
 			}

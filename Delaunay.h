@@ -36,6 +36,13 @@ namespace Liar
 		static Liar::Line2d* m_edge;
 		static Liar::Vector2f* m_interscetVector;
 
+#ifdef INFLATE
+		static Liar::Vector2f** m_inflates;
+		static Liar::Uint m_allNumberInflate;
+		static Liar::Uint m_curNumberInflate;
+#endif // INFLATE
+
+
 	public:
 #ifdef EditorMod
 		static Liar::Int mapId;
@@ -47,6 +54,15 @@ namespace Liar
 		static Liar::LineClassification Intersection(const Liar::Line2d&, const Liar::Line2d&, Liar::Vector2f*);
 		static Liar::LineClassification Intersection(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Line2d&, Liar::Vector2f*);
 		static Liar::LineClassification Intersection(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, Liar::Vector2f*);
+
+#ifdef INFLATE
+		static void AddVertex(Liar::NAVDTYPE, Liar::NAVDTYPE);
+		static void Inflate(Liar::Map&, Liar::Polygon&, Liar::NAVDTYPE = 0.01f);
+		static void ResetInFlate();
+#endif // INFLATE
+
+		static void AddVertex(Liar::Map&, Liar::Polygon&, Liar::NAVDTYPE, Liar::NAVDTYPE);
+		static void AddVertex(Liar::Map&, Liar::Polygon&, const Liar::Vector2f&);
 
 	private:
 		static void BuildEdges(Liar::Map&);
@@ -70,6 +86,11 @@ namespace Liar
 #ifdef EditorMod
 		static void PrintEdges(const Liar::Map&);
 #endif // EditorMod
+
+#ifdef INFLATE
+		static bool PointIsConcave(Liar::Uint);
+#endif // INFLATE
+
 
 
 #ifdef UNION_POLYGON

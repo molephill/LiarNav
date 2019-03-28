@@ -60,6 +60,14 @@ namespace Liar
 		m_x = m_y = Liar::ZERO;
 	}
 
+	void Vector2f::Normalize()
+	{
+		Liar::NAVDTYPE xxyy = m_x * m_x + m_y * m_y;
+		Liar::NAVDTYPE invLength = 1.0f / sqrtf(xxyy);
+		m_x *= invLength;
+		m_y *= invLength;
+	}
+
 	bool Vector2f::Equals(const Vector2f& rhs, Liar::EPSILONTYPE e) const
 	{
 		return Equals(rhs.m_x, rhs.m_y, e);

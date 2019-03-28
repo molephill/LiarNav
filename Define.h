@@ -13,6 +13,7 @@ namespace Liar
 #define FindNearest 1
 #define OutFind 1
 #define PASS_FIRST 1
+#define INFLATE 1
 
 	// data type
 	typedef float NAVDTYPE;

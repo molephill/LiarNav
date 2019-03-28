@@ -84,6 +84,102 @@ namespace Liar
 		}
 #endif // UNION_POLYGON
 
+#ifdef INFLATE
+		if (m_inflates)
+		{
+			for (i = 0; i < m_allNumberInflate; ++i)
+			{
+				m_inflates[i]->~Vector2f();
+				m_inflates[i] = nullptr;
+			}
+			free(m_inflates);
+			m_inflates = nullptr;
+		}
+#endif // INFLATE
+
+
+	}
+
+#ifdef INFLATE
+	void Delaunay::AddVertex(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	{
+		++m_curNumberInflate;
+		Liar::Vector2f* vec = nullptr;
+		if (m_curNumberInflate >= m_allNumberInflate)
+		{
+			++m_allNumberInflate;
+			size_t blockSize = sizeof(Liar::Vector2f*)*m_allNumberInflate;
+			if (m_inflates) m_inflates = (Liar::Vector2f**)realloc(m_inflates, blockSize);
+			else m_inflates = (Liar::Vector2f**)malloc(blockSize);
+			vec = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+		}
+		else
+		{
+			vec = m_inflates[m_curNumberInflate - 1];
+		}
+		vec->Set(x, y);
+		m_inflates[m_curNumberInflate - 1] = vec;
+	}
+
+	void Delaunay::Inflate(Liar::Map& map, Liar::Polygon& polygon, Liar::NAVDTYPE dis)
+	{
+		Liar::Vector2f ab;
+		Liar::Vector2f ac;
+		for (Liar::Uint i = 0; i < m_curNumberInflate; ++i)
+		{
+			Liar::Vector2f* current = m_inflates[i];
+			Liar::Vector2f* next = m_inflates[(i + 1) % m_curNumberInflate];
+			Liar::Vector2f* previous = m_inflates[i == 0 ? m_curNumberInflate - 1 : i - 1];
+
+			ab.Set(*next);
+			ab -= (*current);
+			ab.Normalize();
+
+			ac.Set(*previous);
+			ac -= (*current);
+			ac.Normalize();
+
+			ab += ac;
+			ab.Normalize();
+
+			ab *= (!Liar::Delaunay::PointIsConcave(i) ? -dis : dis);
+			Liar::Delaunay::AddVertex(map, polygon, ab);
+		}
+		Liar::Delaunay::m_curNumberInflate = 0;
+	}
+
+	void Delaunay::ResetInFlate()
+	{
+		Liar::Delaunay::m_curNumberInflate = 0;
+	}
+
+	bool Delaunay::PointIsConcave(Liar::Uint i)
+	{
+		Liar::Vector2f* current = m_inflates[i];
+		Liar::Vector2f* next = m_inflates[(i + 1) % m_curNumberInflate];
+		Liar::Vector2f* previous = m_inflates[i == 0 ? m_curNumberInflate - 1 : i - 1];
+
+		Liar::NAVDTYPE lx = current->GetX() - previous->GetX();
+		Liar::NAVDTYPE ly = current->GetY() - previous->GetY();
+
+		Liar::NAVDTYPE rx = next->GetX() - current->GetX();
+		Liar::NAVDTYPE ry = next->GetY() - current->GetY();
+
+		Liar::NAVDTYPE cross = lx * ry - ly * rx;
+		return cross > 0;
+	}
+
+#endif // INFLATE
+
+	void Delaunay::AddVertex(Liar::Map& map, Liar::Polygon& polygon, Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	{
+		Liar::Uint pointIndex = map.AddVertex(x, y);
+		polygon.AddPointIndex(pointIndex);
+	}
+
+	void Delaunay::AddVertex(Liar::Map& map, Liar::Polygon& polygon, const Liar::Vector2f& vf)
+	{
+		Liar::Delaunay::AddVertex(map, polygon, vf.GetX(), vf.GetY());
 	}
 
 	Liar::Uint Delaunay::Set(Liar::Map& map, bool isCW, Liar::Uint boxIndex)
@@ -653,6 +749,13 @@ namespace Liar
 #ifdef EditorMod
 	Liar::Int Liar::Delaunay::mapId = 0;
 #endif // EditorMod
+
+#ifdef INFLATE
+	Liar::Vector2f** Liar::Delaunay::m_inflates = nullptr;
+	Liar::Uint Liar::Delaunay::m_allNumberInflate = 0;
+	Liar::Uint Liar::Delaunay::m_curNumberInflate = 0;
+#endif // INFLATE
+
 
 #ifdef UNION_POLYGON
 	void Delaunay::ExpandNodes(Liar::Uint type, Liar::Uint num)
