@@ -143,7 +143,7 @@ namespace Liar
 			ab.Normalize();
 
 			ab *= (!Liar::Delaunay::PointIsConcave(i) ? -dis : dis);
-			Liar::Delaunay::AddVertex(map, polygon, ab);
+			Liar::Delaunay::AddVertex(map, polygon, current->GetX() + ab.GetX(), current->GetY() + ab.GetY());
 		}
 		Liar::Delaunay::m_curNumberInflate = 0;
 	}
