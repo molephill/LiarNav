@@ -72,7 +72,6 @@ namespace Liar
 		const ERL_NIF_TERM* termArray;
 
 		Liar::Map* map = nullptr;
-		Liar::Uint pointIndex = 0;
 		Liar::Polygon* polygon = nullptr;
 
 		while (enif_get_list_cell(env, Info, &head, &tail))
