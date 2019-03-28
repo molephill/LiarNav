@@ -2,14 +2,13 @@
 #ifndef  __VECTOR2F_H__
 #define  __VECTOR2F_H__
 
+#include "Define.h"
 
 #if defined(DEBUG_NIF) || defined(EditorMod) || defined(_DEBUG)
 #include <iostream>
 #endif // DEBUG_NIF
 
 #include <math.h>
-
-#include "Define.h"
 
 #ifdef  EditorMod  
 #define  VECTOR2F_API _declspec(dllexport)  
