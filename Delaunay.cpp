@@ -125,11 +125,17 @@ namespace Liar
 	{
 		Liar::Vector2f ab;
 		Liar::Vector2f ac;
+
+		Liar::Uint nextIndex = 0;
+		Liar::Uint previousIndex = 0;
+
 		for (Liar::Uint i = 0; i < m_curNumberInflate; ++i)
 		{
 			Liar::Vector2f* current = m_inflates[i];
-			Liar::Vector2f* next = m_inflates[(i + 1) % m_curNumberInflate];
-			Liar::Vector2f* previous = m_inflates[i == 0 ? m_curNumberInflate - 1 : i - 1];
+			nextIndex = (i + 1) % m_curNumberInflate;
+			Liar::Vector2f* next = m_inflates[nextIndex];
+			previousIndex = (i == 0) ? m_curNumberInflate - 1 : i - 1;
+			Liar::Vector2f* previous = m_inflates[previousIndex];
 
 			ab.Set(*next);
 			ab -= (*current);
@@ -141,8 +147,8 @@ namespace Liar
 
 			ab += ac;
 			ab.Normalize();
-
 			ab *= (!Liar::Delaunay::PointIsConcave(i) ? -dis : dis);
+
 			Liar::Delaunay::AddVertex(map, polygon, current->GetX() + ab.GetX(), current->GetY() + ab.GetY());
 		}
 		Liar::Delaunay::m_curNumberInflate = 0;
@@ -156,8 +162,10 @@ namespace Liar
 	bool Delaunay::PointIsConcave(Liar::Uint i)
 	{
 		Liar::Vector2f* current = m_inflates[i];
-		Liar::Vector2f* next = m_inflates[(i + 1) % m_curNumberInflate];
-		Liar::Vector2f* previous = m_inflates[i == 0 ? m_curNumberInflate - 1 : i - 1];
+		Liar::Uint nextIndex = (i + 1) % m_curNumberInflate;
+		Liar::Vector2f* next = m_inflates[nextIndex];
+		Liar::Uint previousIndex = i == 0 ? m_curNumberInflate - 1 : i - 1;
+		Liar::Vector2f* previous = m_inflates[previousIndex];
 
 		Liar::NAVDTYPE lx = current->GetX() - previous->GetX();
 		Liar::NAVDTYPE ly = current->GetY() - previous->GetY();

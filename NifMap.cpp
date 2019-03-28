@@ -121,13 +121,12 @@ namespace Liar
 					return false;
 				}
 
-#ifdef INFLATE
-				Liar::Delaunay::Inflate(*map, *polygon);
-#endif // INFLATE
-
-
 				head = subTail;
 			}
+
+#ifdef INFLATE
+			Liar::Delaunay::Inflate(*map, *polygon);
+#endif // INFLATE
 
 			Info = tail;
 		}
