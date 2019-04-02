@@ -125,7 +125,7 @@ namespace Liar
 			}
 
 #ifdef INFLATE
-			Liar::Delaunay::Inflate(*map, *polygon);
+				Liar::Delaunay::Inflate(*map, *polygon, isWall);
 #endif // INFLATE
 
 			Info = tail;

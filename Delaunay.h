@@ -57,7 +57,7 @@ namespace Liar
 
 #ifdef INFLATE
 		static void AddVertex(Liar::NAVDTYPE, Liar::NAVDTYPE);
-		static void Inflate(Liar::Map&, Liar::Polygon&, Liar::NAVDTYPE = 0.01f);
+		static void Inflate(Liar::Map&, Liar::Polygon&, bool = true, Liar::NAVDTYPE = 0.01f);
 		static void ResetInFlate();
 #endif // INFLATE
 

@@ -60,9 +60,6 @@ namespace Liar
 		void Dispose();
 
 	private:
-		Liar::Cell* FindClosestCell(const Vector2f&, bool = true);
-		Liar::Cell* FindClosestCell(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true);
-		
 		Liar::Cell** GetCellPath(Liar::Uint&);
 
 		void GetPath(const Vector2f&, const Vector2f&, Liar::Uint&, bool = true);

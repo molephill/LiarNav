@@ -55,6 +55,7 @@ namespace Liar
 		Liar::Polygon* GetPolygon(Liar::Uint) const;
 
 		Liar::Cell* GetCell(Liar::Uint) const;
+		Liar::Cell* GetCell(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true) const;
 
 		void CalcBound(const Liar::Vector2f&);
 		void CalcBound(const Liar::Polygon&);
@@ -62,7 +63,7 @@ namespace Liar
 		// add NavMesh cells;
 		Liar::Uint AddNavMeshCell(Liar::Cell*);
 		Liar::Uint NavMeshLinkCells(bool = true);
-		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE);
+		bool CanWalk(Liar::NAVDTYPE, Liar::NAVDTYPE, bool = true);
 
 		bool InMap(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		void CalcBound(Liar::Int = 0, bool = false);

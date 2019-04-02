@@ -121,7 +121,7 @@ namespace Liar
 		m_inflates[m_curNumberInflate - 1] = vec;
 	}
 
-	void Delaunay::Inflate(Liar::Map& map, Liar::Polygon& polygon, Liar::NAVDTYPE dis)
+	void Delaunay::Inflate(Liar::Map& map, Liar::Polygon& polygon, bool wall, Liar::NAVDTYPE dis)
 	{
 		Liar::Vector2f ab;
 		Liar::Vector2f ac;
@@ -136,20 +136,27 @@ namespace Liar
 			Liar::Vector2f* next = m_inflates[nextIndex];
 			previousIndex = (i == 0) ? m_curNumberInflate - 1 : i - 1;
 			Liar::Vector2f* previous = m_inflates[previousIndex];
+			if (current->Equals(*next) || current->Equals(*previous))
+			{
+				Liar::Delaunay::AddVertex(map, polygon, *current);
+			}
+			else
+			{
+				ab.Set(*next);
+				ab -= (*current);
+				ab.Normalize();
 
-			ab.Set(*next);
-			ab -= (*current);
-			ab.Normalize();
+				ac.Set(*previous);
+				ac -= (*current);
+				ac.Normalize();
 
-			ac.Set(*previous);
-			ac -= (*current);
-			ac.Normalize();
+				ab += ac;
+				ab.Normalize();
+				if(wall) ab *= (!Liar::Delaunay::PointIsConcave(i) ? -dis : dis);
+				else ab *= (!Liar::Delaunay::PointIsConcave(i) ? dis : -dis);
 
-			ab += ac;
-			ab.Normalize();
-			ab *= (!Liar::Delaunay::PointIsConcave(i) ? -dis : dis);
-
-			Liar::Delaunay::AddVertex(map, polygon, current->GetX() + ab.GetX(), current->GetY() + ab.GetY());
+				Liar::Delaunay::AddVertex(map, polygon, current->GetX() + ab.GetX(), current->GetY() + ab.GetY());
+			}
 		}
 		Liar::Delaunay::m_curNumberInflate = 0;
 	}
@@ -176,7 +183,6 @@ namespace Liar
 		Liar::NAVDTYPE cross = lx * ry - ly * rx;
 		return cross > 0;
 	}
-
 #endif // INFLATE
 
 	void Delaunay::AddVertex(Liar::Map& map, Liar::Polygon& polygon, Liar::NAVDTYPE x, Liar::NAVDTYPE y)

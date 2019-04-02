@@ -171,11 +171,11 @@ namespace Liar
 		++m_pathsession;
 #endif // ShareFind
 
-		Liar::Cell* startCell = FindClosestCell(startX, startY, rw);
+		Liar::Cell* startCell = m_map->GetCell(startX, startY, rw);
 #ifndef OutFind
 		if (!startCell) return nullptr;
 #endif // !OutFind
-		Liar::Cell* endCell = FindClosestCell(endX, endY, rw);
+		Liar::Cell* endCell = m_map->GetCell(endX, endY, rw);
 		if (!endCell) return nullptr;
 
 #ifdef OutFind
@@ -852,32 +852,6 @@ namespace Liar
 		addPoint->Set(x, y);
 		m_path[len - 1] = addPoint;
 		return m_path;
-	}
-
-	/**
-	* 找出给定点所在的三角型
-	* @param Point
-	* @return
-	*/
-	Liar::Cell* NavMesh::FindClosestCell(const Vector2f& pt, bool rw)
-	{
-		return FindClosestCell(pt.GetX(), pt.GetY(), rw);
-	}
-
-	Liar::Cell* NavMesh::FindClosestCell(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool rw)
-	{
-
-		Liar::Uint numCell = m_map->GetCellCount();
-		Liar::Cell** cells = m_map->GetCells();
-		for (Liar::Uint i = 0; i < numCell; ++i)
-		{
-			Liar::Cell* it = cells[i];
-			if (it->IsPointIn(x, y, rw))
-			{
-				return it;
-			}
-		}
-		return nullptr;
 	}
 
 	void NavMesh::DisposePath()

@@ -58,16 +58,10 @@ namespace Liar
 		m_maxX = m_maxY = FLT_MIN;
 	}
 
-	bool Map::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	bool Map::CanWalk(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool CW)
 	{
-		for (Liar::Uint k = 0; k < m_numberCell; ++k)
-		{
-			if (m_cells[k]->IsPointIn(x, y))
-			{
-				return true;
-			}
-		}
-		return false;
+		Liar::Cell* cell = GetCell(x, y, CW);
+		return cell != nullptr;
 	}
 
 	bool Map::InMap(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
@@ -117,6 +111,18 @@ namespace Liar
 	{
 		if (index >= m_numberCell) return nullptr;
 		return m_cells[index];
+	}
+
+	Liar::Cell* Map::GetCell(Liar::NAVDTYPE x, Liar::NAVDTYPE y, bool CW) const
+	{
+		for (Liar::Uint k = 0; k < m_numberCell; ++k)
+		{
+			if (m_cells[k]->IsPointIn(x, y, CW))
+			{
+				return m_cells[k];
+			}
+		}
+		return nullptr;
 	}
 
 	Liar::Uint Map::AddPolygon(Liar::Vector2f* v, Liar::Uint size)
@@ -255,12 +261,12 @@ namespace Liar
 
 	Liar::Uint Map::NavMeshLinkCells(bool isCW)
 	{
-		if (!isCW)
+		if (!isCW && m_numberCell > 0)
 		{
 			Liar::Uint i = 0;
 			Liar::Uint j = m_numberCell - 1;
 			Liar::NAVDTYPE tmpMax = m_numberCell * 0.5 - 1;
-			Liar::Uint max = tmpMax >= 0 ? static_cast<Liar::Uint>(tmpMax) : 0;
+			Liar::Uint max = static_cast<Liar::Uint>(tmpMax);
 			for (i = 0, j = m_numberCell - 1; i <= max; ++i, --j)
 			{
 				Liar::Cell* tmpCell = m_cells[i];
@@ -349,6 +355,12 @@ namespace Liar
 #if defined(DEBUG_NIF) || defined(EditorMod)
 	void Map::WriteErlang(std::ofstream& outfile)
 	{
+		for (Liar::Uint i = 0; i < m_numberVertex; ++i)
+		{
+			Liar::Vector2f* v = m_vertexs[i];
+			outfile << "i:" << i << " {" << v->GetX() << "," << v->GetY() << "}\n";
+		}
+
 		for (Liar::Uint j = 0; j < m_numberPolygon; ++j)
 		{
 			outfile << "\n[";
