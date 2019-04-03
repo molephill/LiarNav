@@ -69,6 +69,7 @@ namespace Liar
 		Liar::Map* GetMap(size_t index) { return m_mapList[index]; };
 		Liar::Cell** GetCrossList() const { return m_navMesh ? m_navMesh->GetCrossCells() : nullptr; };
 		Liar::Uint GetCrossCount() const { return m_navMesh ? m_navMesh->GetNumCrossCells() : 0; };
+		Liar::Uint GetCellCount() const;
 #endif // EditorMod
 
 #if defined(DEBUG_NIF) || defined(EditorMod)

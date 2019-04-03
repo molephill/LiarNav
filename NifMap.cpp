@@ -312,6 +312,16 @@ namespace Liar
 			if (maxY < curMaxY) maxY = curMaxY;
 		}
 	}
+
+	Liar::Uint NifMap::GetCellCount() const
+	{
+		Liar::Uint count = 0;
+		for (Liar::Uint i = 0; i < m_mapcount; ++i)
+		{
+			count += m_mapList[i]->GetCellCount();
+		}
+		return count;
+	}
 #endif // EditorMod
 
 #if defined(DEBUG_NIF) || defined(EditorMod)
