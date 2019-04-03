@@ -97,6 +97,10 @@ namespace Liar
 		}
 #endif // INFLATE
 
+#ifdef EditorMod
+		PrintBuildErrorLogs();
+#endif // EditorMod
+
 
 	}
 
@@ -253,7 +257,13 @@ namespace Liar
 
 		BuildEdges(map);
 		BuildTrianges(map, isCW, boxIndex);
-		return map.NavMeshLinkCells(isCW);
+		Liar::Uint cellCount = map.NavMeshLinkCells(isCW);
+
+#ifdef EditorMod
+		if (cellCount <= 0 && map.GetNumPoints() > 0) SetBuildErrClock(Liar::Delaunay::mapId);
+#endif // EditorMod
+
+		return cellCount;
 	}
 
 	Liar::Line2d** Delaunay::BuildTrianges(
@@ -343,9 +353,7 @@ namespace Liar
 			{
 
 #ifdef EditorMod
-				char szString[32];
-				sprintf_s(szString, 32, "%d", mapId);
-				Liar::MapSource::WriteLog(szString, true, "nav_dead_loop.txt");
+				SetBuildErrLog(Liar::Delaunay::mapId, true, false);
 #endif // EditorMod
 
 				break;
@@ -435,6 +443,58 @@ namespace Liar
 			outfile << i << ":" << "A:{" << pa.GetX() << "," << pa.GetY() << "},B:{" << pb.GetX() << "," << pb.GetY() << "}\n";
 		}
 		outfile.close();
+	}
+
+	Liar::Delaunay::BuildErrorLog* Delaunay::GetBuildErrLog(Liar::Uint bid)
+	{
+		for (Liar::Uint i = 0; i < m_numberBuildErrLogs; ++i)
+		{
+			if (*(m_buildErrLogs[i]) == bid) return m_buildErrLogs[i];
+		}
+		return nullptr;
+	}
+
+	void Delaunay::SetBuildErrClock(Liar::Uint bid, bool clock)
+	{
+		Liar::Delaunay::BuildErrorLog* log = GetBuildErrLog(bid);
+		if (log) log->clockErr = clock;
+	}
+
+	Liar::Delaunay::BuildErrorLog* Delaunay::SetBuildErrLog(Liar::Uint bid, bool loop, bool clock)
+	{
+		Liar::Delaunay::BuildErrorLog* log = GetBuildErrLog(bid);
+		
+		if (!log)
+		{
+			++m_numberBuildErrLogs;
+			size_t blockSize = sizeof(Liar::Delaunay::BuildErrorLog*)*m_numberBuildErrLogs;
+			if (m_buildErrLogs) m_buildErrLogs = (Liar::Delaunay::BuildErrorLog**)realloc(m_buildErrLogs, blockSize);
+			else m_buildErrLogs = (Liar::Delaunay::BuildErrorLog**)malloc(blockSize);
+			log = (Liar::Delaunay::BuildErrorLog*)malloc(sizeof(Liar::Delaunay::m_buildErrLogs));
+			m_buildErrLogs[m_numberBuildErrLogs - 1] = log;
+		}
+		else
+		{
+			log->Set(bid, loop, clock);
+		}
+		return log;
+	}
+
+	void Delaunay::PrintBuildErrorLogs()
+	{
+		if (m_numberBuildErrLogs > 0)
+		{
+			const char* path = "BuildErrorLogs.txt";
+			std::ofstream outfile(path, std::ios::ate);
+			for (Liar::Uint i = 0; i < m_numberBuildErrLogs; ++i)
+			{
+				Liar::Delaunay::BuildErrorLog* log = m_buildErrLogs[i];
+				std::cout << "map_bid: " << log->bid;
+				if (log->loopDead) std::cout << " has overflower";
+				if (log->clockErr) std::cout << " has diffrent clock wise";
+				std::cout << "\n\n";
+			}
+		}
 	}
 #endif // EditorMod
 
@@ -787,6 +847,8 @@ namespace Liar
 	Liar::Vector2f* Liar::Delaunay::m_interscetVector = nullptr;
 #ifdef EditorMod
 	Liar::Int Liar::Delaunay::mapId = 0;
+	Liar::Delaunay::BuildErrorLog** Liar::Delaunay::m_buildErrLogs = nullptr;
+	Liar::Uint Liar::Delaunay::m_numberBuildErrLogs = 0;
 #endif // EditorMod
 
 #ifdef INFLATE
@@ -1164,4 +1226,30 @@ namespace Liar
 		isMain = main;
 	}
 	// ============================== Node =========================
+
+#ifdef EditorMod
+	// ============================== BuildErrorLog =========================
+	Liar::Delaunay::BuildErrorLog::BuildErrorLog(Liar::Uint id, bool l, bool c) :
+		bid(id), loopDead(l), clockErr(c)
+	{}
+
+	void Liar::Delaunay::BuildErrorLog::Set(Liar::Uint id, bool l, bool c)
+	{
+		bid = id;
+		loopDead = l;
+		clockErr = c;
+	}
+
+	bool Liar::Delaunay::BuildErrorLog::operator==(const Liar::Delaunay::BuildErrorLog& rhs) const
+	{
+		return rhs.bid == bid;
+	}
+
+	bool Liar::Delaunay::BuildErrorLog::operator==(Liar::Uint rid) const
+	{
+		return rid == bid;
+	}
+	// ============================== BuildErrorLog =========================
+#endif // EditorMod
+
 }

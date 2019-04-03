@@ -22,6 +22,10 @@ namespace Liar
 	private:
 		class Circle;
 		class Node;
+#ifdef EditorMod
+		class BuildErrorLog;
+#endif // EditorMod
+
 
 	private:
 		static Liar::Line2d** m_line2ds;
@@ -42,10 +46,15 @@ namespace Liar
 		static Liar::Uint m_curNumberInflate;
 #endif // INFLATE
 
+#ifdef EditorMod
+		static Liar::Delaunay::BuildErrorLog** m_buildErrLogs;
+		static Liar::Uint m_numberBuildErrLogs;
+#endif // EditorMod
 
 	public:
 #ifdef EditorMod
 		static Liar::Int mapId;
+		static void PrintBuildErrorLogs();
 #endif // EditorMod
 
 		static Liar::Uint Set(Liar::Map&, bool = true, Liar::Uint = 0);
@@ -90,16 +99,16 @@ namespace Liar
 		static void AddVertex(const Liar::Vector2f&);
 #endif // INFLATE
 
-
 #ifdef EditorMod
 		static void PrintEdges(const Liar::Map&);
+		static Liar::Delaunay::BuildErrorLog* GetBuildErrLog(Liar::Uint);
+		static void SetBuildErrClock(Liar::Uint, bool = true);
+		static Liar::Delaunay::BuildErrorLog* SetBuildErrLog(Liar::Uint, bool, bool);
 #endif // EditorMod
 
 #ifdef INFLATE
 		static bool PointIsConcave(Liar::Uint);
 #endif // INFLATE
-
-
 
 #ifdef UNION_POLYGON
 	private:
@@ -163,6 +172,23 @@ namespace Liar
 		bool isMain;
 		Node* next;
 	};
+
+#ifdef EditorMod
+	class Delaunay::BuildErrorLog
+	{
+	public:
+		BuildErrorLog(Liar::Uint, bool = false, bool = false);
+		void Set(Liar::Uint, bool = false, bool = false);
+		bool operator==(const Liar::Delaunay::BuildErrorLog&) const;
+		bool operator==(Liar::Uint) const;
+
+	public:
+		Liar::Uint bid;
+		bool loopDead;
+		bool clockErr;
+	};
+#endif // EditorMod
+
 }
 
 #endif  // !__DELAUNAY_H__
