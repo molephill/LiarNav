@@ -105,11 +105,7 @@ namespace Liar
 
 					if (polygon)
 					{
-#ifdef INFLATE
-						Liar::Delaunay::AddVertex(x, y);
-#else
-						Liar::Delaunay::AddVertex(*map, *polygon, x, y);
-#endif // INFLATE
+						Liar::Delaunay::AddVertexToMap(*map, *polygon, x, y);
 					}
 				}
 				else

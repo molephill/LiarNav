@@ -56,13 +56,12 @@ namespace Liar
 		static Liar::LineClassification Intersection(const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, const Liar::Vector2f&, Liar::Vector2f*);
 
 #ifdef INFLATE
-		static void AddVertex(Liar::NAVDTYPE, Liar::NAVDTYPE);
 		static void Inflate(Liar::Map&, Liar::Polygon&, bool = true, Liar::NAVDTYPE = 0.01f);
 		static void ResetInFlate();
 #endif // INFLATE
 
-		static void AddVertex(Liar::Map&, Liar::Polygon&, Liar::NAVDTYPE, Liar::NAVDTYPE);
-		static void AddVertex(Liar::Map&, Liar::Polygon&, const Liar::Vector2f&);
+		static void AddVertexToMap(Liar::Map&, Liar::Polygon&, Liar::NAVDTYPE, Liar::NAVDTYPE);
+		static void AddVertexToMap(Liar::Map&, Liar::Polygon&, const Liar::Vector2f&);
 
 	private:
 		static void BuildEdges(Liar::Map&);
@@ -82,6 +81,15 @@ namespace Liar
 
 		static Liar::Line2d** RemovePosLine(Liar::Line2d** lv, int&, int pos);
 		static Liar::Int FindLinePos(const Liar::Vector2f&, const Liar::Vector2f&, Liar::Line2d**, Liar::Uint);
+
+		static void AddVertex(Liar::Map&, Liar::Polygon&, Liar::NAVDTYPE, Liar::NAVDTYPE);
+		static void AddVertex(Liar::Map&, Liar::Polygon&, const Liar::Vector2f&);
+
+#ifdef INFLATE
+		static void AddVertex(Liar::NAVDTYPE, Liar::NAVDTYPE);
+		static void AddVertex(const Liar::Vector2f&);
+#endif // INFLATE
+
 
 #ifdef EditorMod
 		static void PrintEdges(const Liar::Map&);

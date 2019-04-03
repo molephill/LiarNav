@@ -101,6 +101,11 @@ namespace Liar
 	}
 
 #ifdef INFLATE
+	void Delaunay::AddVertex(const Liar::Vector2f& v)
+	{
+		AddVertex(v.GetX(), v.GetY());
+	}
+
 	void Delaunay::AddVertex(Liar::NAVDTYPE x, Liar::NAVDTYPE y)
 	{
 		++m_curNumberInflate;
@@ -182,6 +187,26 @@ namespace Liar
 
 		Liar::NAVDTYPE cross = lx * ry - ly * rx;
 		return cross > 0;
+	}
+
+	void Delaunay::AddVertexToMap(Liar::Map&, Liar::Polygon&, const Liar::Vector2f& v)
+	{
+		AddVertex(v);
+	}
+
+	void Delaunay::AddVertexToMap(Liar::Map&, Liar::Polygon&, Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	{
+		AddVertex(x, y);
+	}
+#else
+	void Delaunay::AddVertexToMap(Liar::Map& map, Liar::Polygon& polygon, const Liar::Vector2f& v)
+	{
+		AddVertex(map, polygon, v);
+	}
+
+	void Delaunay::AddVertexToMap(Liar::Map& map, Liar::Polygon& polygon, Liar::NAVDTYPE x, Liar::NAVDTYPE y)
+	{
+		AddVertex(map, polygon, x, y);
 	}
 #endif // INFLATE
 
