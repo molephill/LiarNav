@@ -90,6 +90,7 @@ namespace Liar
 			for (i = 0; i < m_allNumberInflate; ++i)
 			{
 				m_inflates[i]->~Vector2f();
+				free(m_inflates[i]);
 				m_inflates[i] = nullptr;
 			}
 			free(m_inflates);
@@ -121,13 +122,13 @@ namespace Liar
 			if (m_inflates) m_inflates = (Liar::Vector2f**)realloc(m_inflates, blockSize);
 			else m_inflates = (Liar::Vector2f**)malloc(blockSize);
 			vec = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
+			m_inflates[m_curNumberInflate - 1] = vec;
 		}
 		else
 		{
 			vec = m_inflates[m_curNumberInflate - 1];
 		}
 		vec->Set(x, y);
-		m_inflates[m_curNumberInflate - 1] = vec;
 	}
 
 	void Delaunay::Inflate(Liar::Map& map, Liar::Polygon& polygon, bool wall, Liar::NAVDTYPE dis)
