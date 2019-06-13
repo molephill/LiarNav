@@ -122,7 +122,7 @@ namespace Liar
 			if (m_inflates) m_inflates = (Liar::Vector2f**)realloc(m_inflates, blockSize);
 			else m_inflates = (Liar::Vector2f**)malloc(blockSize);
 			vec = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-			m_inflates[m_curNumberInflate - 1] = vec;
+			m_inflates[m_allNumberInflate - 1] = vec;
 		}
 		else
 		{
