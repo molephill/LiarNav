@@ -86,7 +86,7 @@ namespace Liar
 #endif // UNION_POLYGON
 
 #if defined(DEBUG_NIF) || defined(EditorMod)
-		void WriteErlang(std::ofstream&);
+		void WriteErlang(std::ofstream&, bool = false);
 #endif // DEBUG_NIF
 
 

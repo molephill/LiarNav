@@ -353,12 +353,15 @@ namespace Liar
 #endif // UNION_POLYGON
 
 #if defined(DEBUG_NIF) || defined(EditorMod)
-	void Map::WriteErlang(std::ofstream& outfile)
+	void Map::WriteErlang(std::ofstream& outfile, bool writeAll)
 	{
-		for (Liar::Uint i = 0; i < m_numberVertex; ++i)
+		if (writeAll) 
 		{
-			Liar::Vector2f* v = m_vertexs[i];
-			outfile << "i:" << i << " {" << v->GetX() << "," << v->GetY() << "}\n";
+			for (Liar::Uint i = 0; i < m_numberVertex; ++i)
+			{
+				Liar::Vector2f* v = m_vertexs[i];
+				outfile << "i:" << i << " {" << v->GetX() << "," << v->GetY() << "}\n";
+			}
 		}
 
 		for (Liar::Uint j = 0; j < m_numberPolygon; ++j)
@@ -377,10 +380,13 @@ namespace Liar
 			else outfile << "],";
 		}
 
-		for (Liar::Uint i = 0; i < m_numberCell; ++i)
+		if (writeAll) 
 		{
-			outfile << "\n";
-			m_cells[i]->WriteErlang(outfile);
+			for (Liar::Uint i = 0; i < m_numberCell; ++i)
+			{
+				outfile << "\n";
+				m_cells[i]->WriteErlang(outfile);
+			}
 		}
 	}
 #endif

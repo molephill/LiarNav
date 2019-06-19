@@ -115,14 +115,14 @@ namespace Liar
 	{
 		++m_curNumberInflate;
 		Liar::Vector2f* vec = nullptr;
-		if (m_curNumberInflate >= m_allNumberInflate)
+		if (m_curNumberInflate > m_allNumberInflate)
 		{
 			++m_allNumberInflate;
 			size_t blockSize = sizeof(Liar::Vector2f*)*m_allNumberInflate;
 			if (m_inflates) m_inflates = (Liar::Vector2f**)realloc(m_inflates, blockSize);
 			else m_inflates = (Liar::Vector2f**)malloc(blockSize);
 			vec = (Liar::Vector2f*)malloc(sizeof(Liar::Vector2f));
-			m_inflates[m_allNumberInflate - 1] = vec;
+			m_inflates[m_curNumberInflate - 1] = vec;
 		}
 		else
 		{
