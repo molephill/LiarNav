@@ -13,6 +13,10 @@
 
 namespace Liar
 {
+#ifdef UNION_MUL_POLYGON
+	class NifMap;
+#endif //UNION_MUL_POLYGON
+
 #ifdef EditorMod
 	class DELAUNAY_API Delaunay
 #else
@@ -25,7 +29,6 @@ namespace Liar
 #ifdef EditorMod
 		class BuildErrorLog;
 #endif // EditorMod
-
 
 	private:
 		static Liar::Line2d** m_line2ds;
@@ -44,6 +47,8 @@ namespace Liar
 		static Liar::Vector2f** m_inflates;
 		static Liar::Uint m_allNumberInflate;
 		static Liar::Uint m_curNumberInflate;
+		static Liar::Vector2f* m_tmpAB;
+		static Liar::Vector2f* m_tmpAC;
 #endif // INFLATE
 
 #ifdef EditorMod
@@ -71,6 +76,10 @@ namespace Liar
 
 		static void AddVertexToMap(Liar::Map&, Liar::Polygon&, Liar::NAVDTYPE, Liar::NAVDTYPE);
 		static void AddVertexToMap(Liar::Map&, Liar::Polygon&, const Liar::Vector2f&);
+		static Liar::NAVDTYPE CalAngle(const Vector2f&, const Vector2f&, const Vector2f&);
+		static Liar::NAVDTYPE CalAngle(const Vector2f&, const Vector2f&, Liar::NAVDTYPE, Liar::NAVDTYPE);
+		static bool OnLine(const Vector2f&, const Vector2f&, const Vector2f&);
+		static bool OnLine(const Vector2f&, const Vector2f&, Liar::NAVDTYPE, Liar::NAVDTYPE);
 
 	private:
 		static void BuildEdges(Liar::Map&);
@@ -110,27 +119,29 @@ namespace Liar
 		static bool PointIsConcave(Liar::Uint);
 #endif // INFLATE
 
-#ifdef UNION_POLYGON
+#if defined(UNION_POLYGON) || defined(UNION_MUL_POLYGON)
 	private:
-		static int IntersectPoint(Liar::Map&, Liar::Uint&, Liar::Uint&, bool, bool = true);
-		static Liar::Uint LinkToPolygon(Liar::Map&, Liar::Uint, Liar::Uint, bool);
+		static int IntersectPoint(Liar::Map&, Liar::Uint&, Liar::Uint&, bool = true);
+		static Liar::Uint LinkToPolygon(Liar::Map&, Liar::Uint, Liar::Uint);
 		static int GetNodeIndex(Liar::Delaunay::Node** cv, int, const Liar::Vector2f&);
 
-		// expand
-		static bool Expand(Liar::Uint, Liar::Uint);
-		static void ExpandNodes(Liar::Uint, Liar::Uint);
-
 	private:
+		static Liar::Delaunay::Node** m_nodes0;
+		static Liar::Uint m_numberNode0;
 		static Liar::Delaunay::Node** m_nodes1;
 		static Liar::Uint m_numberNode1;
-		static Liar::Delaunay::Node** m_nodes2;
-		static Liar::Uint m_numberNode2;
+		static Liar::Line2d* m_tmpLine2d0;
+		static Liar::Line2d* m_tmpLine2d1;
 
 		static bool CheckCross(Liar::NAVDTYPE r1[], Liar::NAVDTYPE r2[]);
 
 	public:
 		static Liar::Uint UnionPolygons(Liar::Map&, const Liar::Polygon&, const Liar::Polygon&, bool = true);
 #endif // UNION_POLYGON
+
+#ifdef UNION_MUL_POLYGON
+		static Liar::Uint UnionPolygons(Liar::NifMap&, bool = true);
+#endif //UNION_MUL_POLYGON
 	};
 
 	/**
@@ -160,8 +171,9 @@ namespace Liar
 		~Node();
 
 	public:
-		void Init(Liar::Map const*);
+		void Set(Liar::Map const*);
 		void Set(Liar::Uint, bool isInters, bool main);
+		Liar::Vector2f* GetVertex() const;
 
 	public:
 		Liar::Uint v;

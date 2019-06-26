@@ -8,12 +8,14 @@ namespace Liar
 #define EditorMod 1
 //#define DEBUG_NIF 1
 //#define UNION_POLYGON 1
-//#define UNIQUE_POINT 1
+//#define UNION_MUL_POLYGON 1
+#define UNIQUE_POINT 1
 //#define PRINT 1
 #define FindNearest 1
 #define OutFind 1
 #define PASS_FIRST 1
 #define INFLATE 1
+//#define FILTER_POLYGON 1
 
 	// data type
 	typedef float NAVDTYPE;

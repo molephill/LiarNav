@@ -85,6 +85,10 @@ namespace Liar
 		void UnionAll(bool = true);
 #endif // UNION_POLYGON
 
+#ifdef FILTER_POLYGON
+		void RemoveRedundant();
+#endif // FILTER_POLYGON
+
 #if defined(DEBUG_NIF) || defined(EditorMod)
 		void WriteErlang(std::ofstream&, bool = false);
 #endif // DEBUG_NIF

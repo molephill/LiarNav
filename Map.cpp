@@ -73,8 +73,6 @@ namespace Liar
 		return false;
 	}
 
-
-
 	void Map::CalcBound(Liar::Int index, bool force)
 	{
 		if (m_minX == FLT_MAX && m_minY == FLT_MAX && m_maxX == FLT_MIN && m_maxY == FLT_MIN)
@@ -292,10 +290,20 @@ namespace Liar
 		return m_numberCell;
 	}
 
+#ifdef FILTER_POLYGON
+	void Map::RemoveRedundant()
+	{
+		for (Liar::Uint i = 0; i < m_numberPolygon; ++i)
+		{
+			m_polygons[i]->RemoveRedundant();
+		}
+	}
+#endif // !FILTER_POLYGON
+
 #ifdef UNION_POLYGON
 	void Map::UnionAll(bool rw)
 	{
-		for (Liar::Uint n = 0; n < m_numberPolygon; ++n)
+		for (Liar::Uint n = 1; n < m_numberPolygon; ++n)
 		{
 			Liar::Polygon* p0 = m_polygons[n];
 			for (Liar::Uint m = 1; m < m_numberPolygon; ++m)
@@ -307,44 +315,12 @@ namespace Liar
 				{
 					p0->Rectangle();
 					p1->Rectangle();
-					Liar::Uint unionNum = 0;//Liar::Delaunay::UnionPolygons(*this, *p0, *p1, rw);
+					Liar::Uint unionNum = Liar::Delaunay::UnionPolygons(*this, *p0, *p1, rw);
 					if (unionNum > 0)
 					{
-						// delete p0 & p1;
-						Liar::Uint replace0 = 0;
-						Liar::Uint replace1 = 0;
-						if (m > n)
-						{
-							replace0 = n;
-							replace1 = m;
-						}
-						else
-						{
-							replace0 = m;
-							replace1 = n;
-						}
-
-						// TODO delete null refrence point index
-						// at least 1
-						m_polygons[replace0]->~Polygon();
-						m_polygons[replace0] = nullptr;
-						m_polygons[replace0] = m_polygons[m_numberPolygon - 1];
-
-						// last move
-						free(m_polygons[m_numberPolygon - 1]);
-						m_polygons[m_numberPolygon - 1] = nullptr;
-
-						m_polygons[replace1]->~Polygon();
-						if (replace1 != m_numberPolygon - 2)
-						{
-							m_polygons[replace1] = m_polygons[m_numberPolygon - 2];
-							free(m_polygons[m_numberPolygon - 2]);
-							m_polygons[m_numberPolygon - 2] = nullptr;
-						}
-
-						m_numberPolygon -= 2 + unionNum;
-
-						n = 1;
+						DisposePolygon(p0);
+						DisposePolygon(p1);
+						UnionAll(rw);
 					}
 				}
 			}

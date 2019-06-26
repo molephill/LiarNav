@@ -41,7 +41,12 @@ namespace Liar
 		Liar::Uint GetNumPoints() const { return m_numberPoints; };
 		void AddPointIndex(Liar::Uint);
 		Liar::Uint GetPointIndex(Liar::Uint) const;
+		void DisposeVector(Liar::Uint);
 		void Dispose();
+
+#ifdef FILTER_POLYGON
+		void RemoveRedundant();
+#endif // FILTER_POLYGON
 	};
 }
 

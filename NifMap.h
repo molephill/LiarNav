@@ -72,6 +72,11 @@ namespace Liar
 		Liar::Uint GetCellCount() const;
 #endif // EditorMod
 
+#ifdef UNION_POLYGON
+		void UnionMap(Liar::Map&, Liar::Uint, Liar::Uint);
+		void DisposeMap(Liar::Map*);
+#endif // UNION_POLYGON
+
 #if defined(DEBUG_NIF) || defined(EditorMod)
 		void WriteErlang(const char* = nullptr);
 #endif

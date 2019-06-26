@@ -270,6 +270,10 @@ namespace Liar
 
 	int NifMap::BuildAll(bool cw)
 	{
+#ifdef UNION_MUL_POLYGON
+		Liar::Delaunay::UnionPolygons(*this, cw);
+#endif // UNION_MUL_POLYGON
+
 		int cellCount = 0;
 		for (Liar::Uint i = 0; i < m_mapcount; ++i)
 		{
@@ -295,6 +299,76 @@ namespace Liar
 		m_mapList[index]->AddPolygon(v, count);
 		return true;
 	}
+
+#ifdef UNION_MUL_POLYGON
+	void NifMap::UnionMap(Liar::Map& addMap, Liar::Uint m0, Liar::Uint m1)
+	{
+		Liar::Map* map = m_mapList[m0];
+		Liar::Polygon* polygon = nullptr;
+		Liar::Vector2f* vec = nullptr;
+		Liar::Uint i = 0, j = 0, numPoints = 0, pointIndex = 0, polygonCount = 0;
+		polygonCount = map->GetPolygonSize();
+		for (i = 1; i < polygonCount; ++i)
+		{
+			polygon = map->GetPolygon(i);
+			numPoints = polygon->GetNumPoints();
+			Liar::Polygon& addPolygon = addMap.AutoAddPolygon();
+			for (j = 0; j < numPoints; ++j)
+			{
+				vec = polygon->GetVertex(i);
+				pointIndex = addMap.AddVertex(*vec);
+				addPolygon.AddPointIndex(pointIndex);
+			}
+		}
+
+		map = m_mapList[m1];
+		polygonCount = map->GetPolygonSize();
+		for (i = 1; i < polygonCount; ++i)
+		{
+			polygon = map->GetPolygon(i);
+			numPoints = polygon->GetNumPoints();
+			Liar::Polygon& addPolygon = addMap.AutoAddPolygon();
+			for (j = 0; j < numPoints; ++j)
+			{
+				vec = polygon->GetVertex(i);
+				pointIndex = addMap.AddVertex(*vec);
+				addPolygon.AddPointIndex(pointIndex);
+			}
+		}
+
+		DisposeMap(m_mapList[m0]);
+		DisposeMap(m_mapList[m1]);
+	}
+
+	void NifMap::DisposeMap(Liar::Map* map)
+	{
+		if (map)
+		{
+			Liar::Uint i = 0;
+			Liar::Int findIndex = -1;
+			for (i = 0; i < m_mapcount; ++i)
+			{
+				if (m_mapList[i] == map)
+				{
+					m_mapList[i]->~Map();
+					free(m_mapList[i]);
+					m_mapList[i] = nullptr;
+					findIndex = i;
+				}
+			}
+
+			if (findIndex >= 0)
+			{
+				for (i = findIndex + 1; i < m_mapcount; ++i)
+				{
+					m_mapList[i - 1] = m_mapList[i];
+				}
+				--m_mapcount;
+			}
+
+		}
+	}
+#endif // UNION_MUL_POLYGON
 
 #ifdef EditorMod
 	void NifMap::GetBound(Liar::NAVDTYPE& minX, Liar::NAVDTYPE& minY, Liar::NAVDTYPE& maxX, Liar::NAVDTYPE& maxY)

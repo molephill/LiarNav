@@ -1,6 +1,7 @@
 #include "Polygon.h"
 #include "Map.h"
 #include "Line2d.h"
+#include "Delaunay.h"
 
 namespace Liar
 {
@@ -98,6 +99,7 @@ namespace Liar
 			m_pointIndices[i] = m_pointIndices[j];
 			m_pointIndices[j] = k;
 		}
+		m_isClockWise = isCW ? Liar::ClockWiseDefine::CLOCK_WISE_DEFINE : Liar::ClockWiseDefine::COUNT_CLOCK_WISE_DEFINE;
 	}
 
 	/**
@@ -178,5 +180,35 @@ namespace Liar
 		m_rect[3] = by;
 		return m_rect;
 	}
+
+	void Polygon::DisposeVector(Liar::Uint findIndex)
+	{
+		if (findIndex >= 0 && findIndex < m_numberPoints)
+		{
+			for (Liar::Uint i = findIndex + 1; i < m_numberPoints; ++i)
+			{
+				m_pointIndices[i - 1] = m_pointIndices[i];
+			}
+			--m_numberPoints;
+		}
+	}
+
+#ifdef FILTER_POLYGON
+	void Polygon::RemoveRedundant()
+	{
+		for (Liar::Uint i = 0; i < m_numberPoints - 2; ++i) 
+		{
+			Liar::Vector2f* first = GetVertex(i);
+			Liar::Vector2f* second = GetVertex(i+1);
+			Liar::Vector2f* last = GetVertex(i + 2);
+
+			if (Liar::Delaunay::OnLine(*first, *second, *last))
+			{
+				DisposeVector(i + 1);
+				i--;
+			}
+		}
+	}
+#endif // FILTER_POLYGON
 
 }
